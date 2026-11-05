@@ -1,0 +1,71 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Doorways AR · prep</title></head>
+<body style="background:#111;color:#ccc;font:12px ui-monospace,monospace">
+<p id="log">prep…</p>
+<canvas id="mean"></canvas>
+<script type="module">
+/* Build-time tool (run once whenever the card art changes):
+   1. colour signature of every number side — Oklab at a grid of points,
+      skipping the white line art, so the app can tell the 48 gradients apart;
+   2. one tracking target: the mean of all 48 number sides. The white line
+      art is identical on every card and survives the average; the gradients
+      blur into a soft grey. MindAR compiles this to targets.mind.
+   Results are left on window.__out for the build script to collect. */
+import 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js';
+import {GRID} from '../sig.js';
+const log=m=>{document.getElementById('log').textContent=m;console.log(m);};
+const load=src=>new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=src;});
+const W=724,H=1087;                      /* full render size: the tracker needs every edge it can get */
+const lin=c=>c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4);
+function oklab(r,g,b){
+  r=lin(r/255);g=lin(g/255);b=lin(b/255);
+  const l=Math.cbrt(.4122214708*r+.5363325363*g+.0514459929*b),m=Math.cbrt(.2119034982*r+.6806995451*g+.1073969566*b),s=Math.cbrt(.0883024619*r+.2817188376*g+.6299787005*b);
+  return [.2104542553*l+.793617785*m-.0040720468*s,1.9779984951*l-2.428592205*m+.4505937099*s,.0259040371*l+.7827717662*m-.8086757660*s];
+}
+const out={sig:[],targets:null,features:0};
+const acc=new Float32Array(W*H);
+const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+const g=cv.getContext('2d',{willReadFrequently:true});
+for(let k=1;k<=48;k++){
+  const n=String(k).padStart(2,'0');
+  const im=await load(`../assets/cards/num-${n}.jpg`);
+  g.drawImage(im,0,0,W,H);
+  const d=g.getImageData(0,0,W,H).data;
+  for(let i=0;i<W*H;i++) acc[i]+=(.299*d[i*4]+.587*d[i*4+1]+.114*d[i*4+2])/48;
+  /* signature: mean Oklab of a small patch per grid point, ignoring near-white art */
+  const sig=GRID.map(([u,v])=>{
+    const cx=Math.round(u*W),cy=Math.round(v*H); let L=0,A=0,B=0,c=0;
+    for(let y=-4;y<=4;y++)for(let x=-4;x<=4;x++){
+      const i=((cy+y)*W+(cx+x))*4, r=d[i],gg=d[i+1],b=d[i+2];
+      if(Math.min(r,gg,b)>215) continue;
+      const o=oklab(r,gg,b); L+=o[0];A+=o[1];B+=o[2];c++;
+    }
+    return c<20?null:[+(L/c).toFixed(4),+(A/c).toFixed(4),+(B/c).toFixed(4)];
+  });
+  out.sig.push(sig);
+  log(`signature ${k}/48`);
+}
+/* the mean card, as an image for the compiler */
+const mc=document.getElementById('mean'); mc.width=W; mc.height=H;
+const mg=mc.getContext('2d'), md=mg.createImageData(W,H);
+/* keep only what every card shares: pixels that are white on (nearly) all 48
+   cards stay white, everything else becomes flat mid-grey — roughly what the
+   camera sees on any gradient. No blur halos, so no false corners. */
+const sm=(e0,e1,x)=>{ const t=Math.max(0,Math.min(1,(x-e0)/(e1-e0))); return t*t*(3-2*t); };
+for(let i=0;i<W*H;i++){ const v=110+145*sm(175,215,acc[i]);
+  md.data[i*4]=md.data[i*4+1]=md.data[i*4+2]=v; md.data[i*4+3]=255; }
+mg.putImageData(md,0,0);
+out.meanPNG=mc.toDataURL('image/png');
+const meanImg=await load(out.meanPNG);
+log('compiling target…');
+const compiler=new window.MINDAR.IMAGE.Compiler();
+const data=await compiler.compileImageTargets([meanImg],p=>log('compiling target… '+p.toFixed(0)+'%'));
+out.features=data.map(t=>t.trackingData?t.trackingData.map(x=>x.points?x.points.length:0):[]);
+const buf=compiler.exportData();
+let s=''; const u8=new Uint8Array(buf); for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));
+out.targets=btoa(s);
+window.__out=out;
+document.title='PREP-DONE';
+log(`done · target ${(u8.length/1024).toFixed(0)} KB · tracking points per scale ${JSON.stringify(out.features)}`);
+</script>
+</body></html>

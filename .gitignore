@@ -1,0 +1,6 @@
+# Local Netlify link
+.netlify/
+# notes for local tools, not part of the site
+AJITH-FIXES.md
+.DS_Store
+node_modules/

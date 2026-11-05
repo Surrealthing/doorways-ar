@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0a0b0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Doorways · we*re</title>
+<!-- the deck's own type: Loos (CSTM Fonts) and Adonis (Paratype), Adobe Fonts kit lhw0umg -->
+<link rel="preconnect" href="https://use.typekit.net" crossorigin>
+<link rel="stylesheet" href="https://use.typekit.net/lhw0umg.css">
+<style>
+  /* ==========================================================================
+     One system. Colour comes from the cards; everything else is near-black,
+     white and a grey. One easing curve and three durations, shared with app.js
+     (see T and ease() there): short for presses and small state changes,
+     medium for things appearing, long for the card's own movement.
+     ========================================================================== */
+  :root{
+    --bg:#0a0b0f; --tx:#f3f4f6; --mut:rgba(243,244,246,.62); --dim:rgba(243,244,246,.38);
+    --panel:#15171c; --ink:#0b0c10; --paper:#ffffff; --grey:#eceef2;
+    --ease:cubic-bezier(.22,1,.36,1);
+    --t-s:.3s; --t-m:.7s; --t-l:1.2s;
+    --sans:"loos-normal",-apple-system,system-ui,sans-serif; --wide:"loos-wide","loos-normal",sans-serif;
+    --serif:"adonis-web",Georgia,serif;
+    --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;overflow:hidden;overscroll-behavior:none}
+  button{font:inherit;color:inherit;border:none;background:none;cursor:pointer;padding:0}
+
+  .screen{position:fixed;inset:0;z-index:2;display:flex;flex-direction:column;
+    opacity:0;pointer-events:none;transition:opacity var(--t-m) var(--ease)}
+  .screen.on{opacity:1;pointer-events:auto}
+
+  /* the real marks, as masks so they take any colour */
+  .logo{display:block;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
+  .logo.doorways{--m:url(assets/logo-doorways.svg);aspect-ratio:120.5/20}
+  .logo.were{--m:url(assets/logo-were.svg);aspect-ratio:47.7/11.6}
+
+  /* buttons: flat, solid, no film */
+  .btn{height:52px;border-radius:26px;font-size:16px;font-weight:500;letter-spacing:.01em;display:flex;align-items:center;justify-content:center;
+    transition:transform var(--t-s) var(--ease),background var(--t-s) var(--ease)}
+  .btn:active{transform:scale(.98)}
+  .btn.primary{background:var(--paper);color:var(--ink)}
+  .btn.secondary{background:var(--panel);color:var(--tx)}
+  .btn.ink{background:var(--ink);color:#fff}
+  .btn.grey{background:var(--grey);color:var(--ink)}
+  .small{height:34px;padding:0 14px;border-radius:17px;font-size:12.5px;background:rgba(10,11,15,.72);color:var(--tx)}
+  /* dark buttons answer a press the way the card answers motion: the label splits slightly
+     into red and blue, then settles back sharp */
+  .btn.ink,.btn.secondary,.small{transition:transform var(--t-s) var(--ease),background var(--t-s) var(--ease),text-shadow var(--t-m) var(--ease);
+    text-shadow:0 0 0 rgba(255,60,90,0),0 0 0 rgba(60,170,255,0)}
+  .btn.ink:active,.btn.secondary:active,.small:active,.btn.ink.ca,.btn.secondary.ca,.small.ca{
+    text-shadow:-1.6px 0 0 rgba(255,60,90,.75),1.6px 0 0 rgba(60,170,255,.75);transition-duration:var(--t-s)}
+  /* the film grain, in step with the screen's: overlay vanishes on near-black, so dark
+     buttons carry the same changing frames (--noise, set in app.js) in screen blend */
+  .btn.ink,.btn.secondary,.small{position:relative;overflow:hidden;isolation:isolate}
+  .btn.ink::after,.btn.secondary::after,.small::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+    background:var(--noise) var(--noise-pos,0 0)/180px 180px;mix-blend-mode:screen;opacity:.1}
+  .icon{width:40px;height:40px;border-radius:20px;display:grid;place-items:center;font-size:17px;background:var(--panel)}
+
+  /* ---- home ----
+     a still backdrop of one card's gradient (blurred, not moving), the falling cards,
+     then the words */
+  .artbg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;transition:opacity var(--t-m) var(--ease)}
+  .artbg i{position:absolute;inset:-12%;background:var(--art) center/cover no-repeat;filter:blur(46px)}
+  .artbg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,11,15,.2),rgba(10,11,15,.1) 40%,rgba(10,11,15,.45))}
+  body.scanning .artbg,body.gridview .artbg{opacity:0}
+
+  #home{align-items:center;justify-content:flex-start;text-align:center;padding:calc(52px + var(--safe-t)) 28px calc(96px + var(--safe-b))}
+  .homelogo{width:min(48vw,210px);margin:4px 0 0;color:#fff;flex:none}
+  /* a soft pool of shade under the words, so they read over the brightest gradient */
+  #home::after{content:"";position:absolute;left:50%;top:50%;width:min(130vw,640px);height:min(86vh,560px);translate:-50% -54%;
+    z-index:0;pointer-events:none;border-radius:50%;opacity:0;transition:opacity var(--t-l) var(--ease);
+    background:radial-gradient(closest-side,rgba(10,11,15,.42),rgba(10,11,15,.22) 55%,rgba(10,11,15,0))}
+  #home.landed::after{opacity:1}
+  #home h1{font-family:var(--serif);font-weight:400;font-size:clamp(25px,7vw,34px);line-height:1.2;margin:auto 0;color:#fff}
+  #home h1 em{font-style:italic}
+  .cta{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px;margin:0 0 8px;flex:none}
+  .homewere{position:absolute;bottom:calc(28px + var(--safe-b));width:70px;color:rgba(255,255,255,.8)}
+  /* the opening: cards fall into a loose pile (motion in app.js), then soften behind the words */
+  .drops{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;z-index:0;perspective:900px}
+  .drops .dc{position:absolute;width:min(25vw,118px);aspect-ratio:2/3;border-radius:8px;overflow:hidden;
+    left:calc(min(25vw,118px) / -2);top:calc(min(25vw,118px) * -.75);backface-visibility:hidden;will-change:transform;
+    transition:filter var(--t-l) var(--ease),opacity var(--t-l) var(--ease)}
+  .drops .dc img{display:block;width:100%;height:100%;object-fit:cover}
+  #home.landed .drops .dc{opacity:.45;filter:blur(3px)}
+  #home.landed.shaking .drops .dc{opacity:.8;filter:blur(.6px);transition-duration:var(--t-s)}
+  #home>.homelogo,#home>h1,#home>.cta{position:relative;z-index:1}
+  #home>.homelogo,#home>h1,#home>.cta,#home>.homewere{opacity:0;translate:0 16px;transition:opacity var(--t-l) var(--ease),translate var(--t-l) var(--ease)}
+  #home.landed>.homelogo{opacity:1;translate:0 0}
+  #home.landed>h1{opacity:1;translate:0 0;transition-delay:calc(var(--t-s) * .5)}
+  #home.landed>.cta{opacity:1;translate:0 0;transition-delay:var(--t-s)}
+  #home.landed>.homewere{opacity:1;translate:0 0;transition-delay:calc(var(--t-s) * 1.5)}
+  @media (prefers-reduced-motion:reduce){.drops{display:none}#home>*{transition:none!important}}
+
+  /* ---- how to use ---- */
+  #how{overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
+  .howwrap{max-width:520px;margin:0 auto;padding:calc(16px + var(--safe-t)) 26px 0}
+  #how h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 16px}
+  #how .lead{font-family:var(--serif);font-size:18px;line-height:1.55;color:rgba(243,244,246,.86);margin:0 0 28px}
+  .steps{list-style:none;counter-reset:s;padding:0;margin:0 0 28px}
+  .steps li{counter-increment:s;display:grid;grid-template-columns:28px 1fr;column-gap:12px;padding:16px 0;border-top:1px solid rgba(255,255,255,.1)}
+  .steps li:last-child{border-bottom:1px solid rgba(255,255,255,.1)}
+  .steps li::before{content:counter(s);grid-row:span 2;font-family:var(--wide);font-size:12px;color:var(--dim);padding-top:3px}
+  .steps b{font-weight:500;font-size:16px}
+  .steps span{font-size:14px;color:var(--mut);line-height:1.45;margin-top:3px}
+
+  /* ---- opening the camera ---- */
+  #boot{align-items:center;justify-content:center;gap:22px;text-align:center;z-index:8;background:var(--bg)}
+  #boot .doorways{width:min(62vw,280px)}
+  #boot p{margin:0;font-size:13px;color:var(--mut);animation:breathe calc(var(--t-l) * 2) var(--ease) infinite alternate}
+  @keyframes breathe{to{opacity:.4}}
+
+  /* ---- scanning ---- */
+  #ar{z-index:1;background:#000}
+  #ar .stage{position:absolute;inset:0}
+  #ar .stage video{object-fit:cover}
+  /* behind the floating card the room dims, so the card is the only thing in focus */
+  .veil{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity var(--t-l) var(--ease);
+    background:rgba(10,11,15,.5);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+  .veil.on{opacity:1}
+  .topbar{position:absolute;z-index:5;left:0;right:0;top:0;padding:calc(14px + var(--safe-t)) 16px 0;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .arlogo{width:118px;color:#fff;pointer-events:none}
+  /* what the scanner is doing, quietly: looking, holding, or one clear message when it can't find a card */
+  .hint{position:absolute;z-index:4;left:24px;right:24px;bottom:calc(104px + var(--safe-b));text-align:center;
+    display:flex;flex-direction:column;align-items:center;gap:6px;text-shadow:0 1px 12px rgba(0,0,0,.5);
+    transition:opacity var(--t-m) var(--ease),transform var(--t-m) var(--ease)}
+  .hint b{font-weight:500;font-size:18px}
+  .hint span{font-family:var(--serif);font-size:15px;line-height:1.45;color:rgba(243,244,246,.82);max-width:300px}
+  .hint.looking b{animation:breathe calc(var(--t-l) * 2) var(--ease) infinite alternate}
+  .hint.hide{opacity:0;transform:translateY(8px);pointer-events:none}
+
+  /* ---- the reflection sheet (after a scan, and in the deck view) ---- */
+  .sheet{position:fixed;z-index:6;left:12px;right:12px;bottom:calc(64px + var(--safe-b));   /* clear of Netlify's free-plan badge */
+    max-width:520px;margin:0 auto;padding:22px 22px 18px;border-radius:24px;background:var(--paper);color:var(--ink);
+    box-shadow:0 20px 50px -20px rgba(0,0,0,.6);
+    transform:translateY(calc(100% + 40px));opacity:0;transition:transform var(--t-m) var(--ease),opacity var(--t-m) var(--ease)}
+  .sheet.on{transform:none;opacity:1}
+  .sheet .base{font-family:var(--wide);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(11,12,16,.5);margin:0 0 8px}
+  .prompt{font-family:var(--serif);font-size:21px;line-height:1.38;margin:0;min-height:58px;
+    transition:opacity var(--t-m) var(--ease),transform var(--t-m) var(--ease)}
+  .prompt.out{opacity:0;transform:translateY(10px)}
+  .actions{display:flex;gap:8px;margin-top:14px}
+  .actions .btn{flex:1;height:46px;font-size:14px}
+  .reveal>*{opacity:0;transform:translateY(12px);transition:opacity var(--t-m) var(--ease),transform var(--t-m) var(--ease)}
+  .sheet.on .reveal>*{opacity:1;transform:none}
+  .sheet.on .reveal>*:nth-child(2){transition-delay:calc(var(--t-s) * .5)}
+  .sheet.on .reveal>*:nth-child(3){transition-delay:var(--t-s)}
+
+  /* ---- the deck ---- */
+  #grid{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(18px + var(--safe-t)) 14px calc(30px + var(--safe-b))}
+  #grid header{position:relative;display:flex;align-items:center;justify-content:center;min-height:40px;margin:4px 4px 16px}
+  #grid header #bGridScan{position:absolute;right:0;top:50%;transform:translateY(-50%)}
+  #grid .note{font-size:13px;color:var(--mut);margin:0 4px 16px;line-height:1.5}
+  #grid .note:empty{display:none}
+  .deck{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+  .deck button{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:2/3;background:var(--panel);transition:transform var(--t-s) var(--ease)}
+  .deck button:active{transform:scale(.96)}
+  .deck img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity var(--t-m) var(--ease)}
+  .deck img.ok{opacity:1}
+  .deck span{position:absolute;left:8px;bottom:7px;font-size:11px;font-weight:500;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+
+  /* one card, turned with a finger */
+  /* placed exactly like the floating card in the scanner (see liftTarget in app.js):
+     52% of the screen's height, never wider than 86% of its width, centred 38% down */
+  #view{z-index:4;background:var(--bg);--ch:min(52dvh,129vw)}
+  #view .back{position:absolute;left:16px;top:calc(14px + var(--safe-t))}
+  .card3d{position:absolute;left:50%;top:calc(38dvh - var(--ch) / 2);height:var(--ch);aspect-ratio:2/3;translate:-50% 0;perspective:1200px;cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none}
+  .card3d .inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform var(--t-l) var(--ease);
+    transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
+  .card3d.flipped .inner{transform:rotateX(var(--rx,0deg)) rotateY(calc(180deg + var(--ry,0deg)))}
+  .card3d.spin .inner{transition:none}
+  .card3d img{-webkit-user-drag:none;pointer-events:none}
+  .card3d .face{position:absolute;inset:0;border-radius:14px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    box-shadow:0 30px 70px -25px rgba(0,0,0,.8)}
+  .card3d .face img{width:100%;height:100%;display:block;object-fit:cover}
+  .card3d .face.emo{transform:rotateY(180deg)}
+  /* the holographic card (WebGL) draws over the box; the flat faces stay underneath as the fallback */
+  .card3d .viewgl{position:absolute;left:-9%;top:-9%;width:118%;height:118%;pointer-events:none;opacity:0;transition:opacity var(--t-m) var(--ease)}
+  .card3d.gl .viewgl{opacity:1}
+  .card3d.gl .inner{visibility:hidden}
+
+  /* grain: living film noise over everything (frames are made and cycled in app.js),
+     never in the way of a finger */
+  .grain{position:fixed;inset:0;z-index:2147483647;pointer-events:none;opacity:.16;mix-blend-mode:overlay;
+    background-size:180px 180px;image-rendering:pixelated}
+  #debug{position:absolute;z-index:7;left:10px;bottom:calc(10px + var(--safe-b));font:10px ui-monospace,monospace;color:#9f9;white-space:pre;pointer-events:none;
+    text-shadow:0 1px 2px #000;display:none}
+</style>
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+  "mindar-image-three":"https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+}}
+</script>
+<script src="data.js"></script>
+</head>
+<body>
+<div class="artbg" id="artbg"><i></i></div>
+
+<section id="home" class="screen on">
+  <div class="drops" id="drops"></div>
+  <i class="logo doorways homelogo"></i>
+  <h1>cards for naming<br><em>what we feel</em></h1>
+  <div class="cta">
+    <button class="btn primary" id="bBegin">begin scanning a card</button>
+    <button class="btn secondary" id="bHow">how to use the cards</button>
+  </div>
+  <i class="logo were homewere"></i>
+</section>
+
+<section id="how" class="screen">
+  <div class="howwrap">
+    <button class="icon" id="bHowBack" title="back">←</button>
+    <i class="logo doorways" style="width:150px;margin:34px 0 30px"></i>
+    <h2>we are emotional beings</h2>
+    <p class="lead">human beings are interesting. we move through a whole spectrum of emotions, often several at once, and most of them never get a name. when we can name a feeling, we can sit with it instead of running from it. these 48 cards are small doorways.</p>
+    <ol class="steps">
+      <li><b>pick a card</b><span>when you feel stuck, curious or overwhelmed.</span></li>
+      <li><b>read it slowly</b><span>the emotion side speaks in its own voice. notice what opens.</span></li>
+      <li><b>scan the card for prompts</b><span>for reflection and journaling. point your camera at the number side, then tap next prompt for another.</span></li>
+    </ol>
+    <p class="lead">may these cards help you become aware of yours, the way they’ve helped us.</p>
+    <div class="cta" style="margin:30px auto 0">
+      <button class="btn primary" id="bHowBegin">begin scanning a card</button>
+      <button class="btn secondary" id="bHowDeck">browse the deck</button>
+    </div>
+    <i class="logo were" style="width:56px;margin:40px auto 90px;color:var(--dim)"></i>
+  </div>
+</section>
+
+<section id="boot" class="screen">
+  <i class="logo doorways"></i>
+  <p id="bootTx">opening the camera</p>
+</section>
+
+<section id="ar" class="screen">
+  <div class="stage" id="stage"></div>
+  <div class="topbar">
+    <i class="logo doorways arlogo"></i>
+    <button class="small" id="bArHow">how to use the cards</button>
+  </div>
+  <div class="hint looking" id="hint">
+    <b id="hintT">looking for a card</b>
+    <span id="hintS">hold the number side up to the camera</span>
+  </div>
+  <div id="debug"></div>
+</section>
+
+<section id="grid" class="screen">
+  <header><i class="logo doorways" style="width:130px"></i><button class="small" id="bGridScan">scan a card</button></header>
+  <p class="note" id="gridNote"></p>
+  <div class="deck" id="deck"></div>
+  <i class="logo were" style="width:60px;margin:30px auto 6px;color:var(--dim)"></i>
+</section>
+
+<section id="view" class="screen">
+  <button class="icon back" id="bViewBack">←</button>
+  <div class="card3d" id="card2d"><div class="inner">
+    <div class="face num"><img alt=""></div>
+    <div class="face emo"><img alt=""></div>
+  </div></div>
+</section>
+
+<div class="sheet" id="sheet">
+  <div class="reveal">
+    <p class="base" id="sBaseLine">prompt for journaling</p>
+    <p class="prompt" id="sPrompt"></p>
+    <div class="actions">
+      <button class="btn ink" id="sNext">next prompt</button>
+      <button class="btn grey" id="sAgain">scan another</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
+<div class="grain" aria-hidden="true"></div>
+</body>
+</html>

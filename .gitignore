@@ -4,3 +4,6 @@
 AJITH-FIXES.md
 .DS_Store
 node_modules/
+# source renders for tools/centre-numbers.swift, not served
+tools/orig-num/
+tools/orig-num-2x/

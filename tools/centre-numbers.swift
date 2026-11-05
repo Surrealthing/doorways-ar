@@ -8,18 +8,21 @@ import ImageIO
 import UniformTypeIdentifiers
 let a = CommandLine.arguments
 let src = a[1], dst = a[2]
-let R = (x: 330, y: 957, w: 66, h: 25)                        // the digits, px from the top-left of 724×1087
+let R0 = (x: 330, y: 957, w: 66, h: 25)                       // the digits, px from the top-left of 724×1087
 for line in try! String(contentsOfFile: a[3], encoding: .utf8).split(separator: "\n") {
     let f = line.split(separator: " "); let id = Int(f[0])!
-    let dx = Int(Double(f[1])!.rounded()), dy = Int(Double(f[2])!.rounded())
+    let dx0 = Double(f[1])!, dy0 = Double(f[2])!                  // measured at 724 px wide
     let name = String(format: "num-%02d.jpg", id)
     guard let isrc = CGImageSourceCreateWithURL(URL(fileURLWithPath: "\(src)/\(name)") as CFURL, nil),
           let img = CGImageSourceCreateImageAtIndex(isrc, 0, nil) else { continue }
     let W = img.width, H = img.height
+    let k = Double(W) / 724                                        // the same layout at any render size
+    let dx = Int((dx0 * k).rounded()), dy = Int((dy0 * k).rounded())
+    let R = (x: Int(Double(R0.x) * k), y: Int(Double(R0.y) * k), w: Int(Double(R0.w) * k), h: Int(Double(R0.h) * k))
     let ctx = CGContext(data: nil, width: W, height: H, bitsPerComponent: 8, bytesPerRow: W * 4,
                         space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
     ctx.draw(img, in: CGRect(x: 0, y: 0, width: W, height: H))
-    if abs(dx) > 1 || abs(dy) > 1 {
+    if abs(dx0) > 1 || abs(dy0) > 1 {
         let p = ctx.data!.bindMemory(to: UInt8.self, capacity: W * H * 4)
         let at = { (x: Int, y: Int) in (y * W + x) * 4 }                  // bitmap rows run top-down here
         // darkness of each digit pixel: 0 = paper white, 1 = full ink (neutral pixels only)
@@ -37,7 +40,7 @@ for line in try! String(contentsOfFile: a[3], encoding: .utf8).split(separator: 
             for c in 0..<3 { p[k+c] = UInt8(Double(p[k+c]) * (1 - m) + 22 * m) } } }
     }
     let out = CGImageDestinationCreateWithURL(URL(fileURLWithPath: "\(dst)/\(name)") as CFURL, UTType.jpeg.identifier as CFString, 1, nil)!
-    CGImageDestinationAddImage(out, ctx.makeImage()!, [kCGImageDestinationLossyCompressionQuality: 0.88] as CFDictionary)
+    CGImageDestinationAddImage(out, ctx.makeImage()!, [kCGImageDestinationLossyCompressionQuality: 0.92] as CFDictionary)
     CGImageDestinationFinalize(out)
 }
 print("done")

@@ -96,7 +96,7 @@ const texCache = new Map();
 const loader = new THREE.TextureLoader();
 function tex(url) {
   if (!texCache.has(url)) texCache.set(url, new Promise((res, rej) => loader.load(url, t => {
-    t.colorSpace = THREE.NoColorSpace; t.anisotropy = 4; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; res(t); },
+    t.colorSpace = THREE.NoColorSpace; t.anisotropy = 16; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; res(t); },
     undefined, e => { texCache.delete(url); rej(e); })));
   return texCache.get(url);
 }
@@ -531,6 +531,7 @@ async function startAR() {
   });
   ({renderer, scene, camera} = mindar);
   renderer.outputColorSpace = THREE.LinearSRGBColorSpace;      /* the shader writes display values directly */
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 3));   /* sharp on retina screens */
   anchor = mindar.addAnchor(0);
   searchSince = performance.now(); hintState = ''; hint('looking');
   buildCard();
@@ -613,7 +614,7 @@ function buildGrid() {
   CARDS.forEach(c => {
     const b = document.createElement('button');
     const img = new Image(); img.loading = 'lazy'; img.alt = c.num; img.onload = () => img.classList.add('ok');
-    img.src = `assets/cards/num-${pad(c.id)}.jpg`;
+    img.src = `assets/cards/thumb-${pad(c.id)}.jpg`;
     b.append(img); b.insertAdjacentHTML('beforeend', `<span>${c.num}</span>`);
     b.onclick = () => openView(c);
     d.append(b);
@@ -671,7 +672,7 @@ function startViewGL(c) {
       card2d.classList.add('gl');
     }).catch(() => {});
     vgl.flip = 0; vgl.t0 = vgl.last = performance.now();
-    const size = () => { const b = card2d.getBoundingClientRect(); vgl.r.setPixelRatio(Math.min(2, devicePixelRatio)); vgl.r.setSize(b.width * 1.18, b.height * 1.18, false); };
+    const size = () => { const b = card2d.getBoundingClientRect(); vgl.r.setPixelRatio(Math.min(3, devicePixelRatio || 1)); vgl.r.setSize(b.width * 1.18, b.height * 1.18, false); };
     size(); addEventListener('resize', size);
     const step = now => {
       const dt = Math.min(.05, (now - vgl.last) / 1000); vgl.last = now;
@@ -818,7 +819,7 @@ function setHomeGradient(preferFresh = true) {
   setColours(c);
   const art = document.documentElement.style;
   const bg = document.querySelector('.artbg');
-  const apply = () => art.setProperty('--art', `url(assets/cards/num-${pad(c.id)}.jpg)`);
+  const apply = () => art.setProperty('--art', `url(assets/cards/thumb-${pad(c.id)}.jpg)`);   /* blurred anyway */
   if (bg && preferFresh && homeGradId != null) {
     bg.style.opacity = '0';
     setTimeout(() => { apply(); bg.style.opacity = ''; }, 280);
@@ -842,7 +843,7 @@ function dropCards() {
   let end = 0;
   ids.forEach((c, i) => {
     const img = document.createElement('div'); img.className = 'dc';
-    const im = new Image(); im.src = `assets/cards/num-${pad(c.id)}.jpg`; im.alt = ''; img.append(im);
+    const im = new Image(); im.src = `assets/cards/thumb-${pad(c.id)}.jpg`; im.alt = ''; img.append(im);
     box.append(img);
     /* where it lands: spread across the whole screen, on a jittered grid so no two
        cards bunch up and no corner is left empty */
@@ -912,7 +913,7 @@ function shuffleCards(power = 1) {
   pile.forEach((p, i) => {
     const {x: x1, y: y1} = slotXY(order[i], cols, rows), r1 = r(-30, 30);
     const swap = Math.random() < .34 && spare.length ? spare.pop() : null, pre = swap && new Image();
-    if (pre) pre.src = `assets/cards/num-${pad(swap.id)}.jpg`;
+    if (pre) pre.src = `assets/cards/thumb-${pad(swap.id)}.jpg`;
     const spin = r(-70, 70) * power, lift = r(1.06, 1.14);
     const fx = r(16, 34) * (Math.random() < .5 ? -1 : 1), fy = r(12, 26), ph = r(0, 6.28);
     const dur = T.l * 1000 * r(.65, .8), delay = r(0, T.s * 300);

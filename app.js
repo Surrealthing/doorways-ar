@@ -164,12 +164,22 @@ function openSheet(on) {
     if (y0 === null) return;
     const dy = e.clientY - y0; y0 = null;
     const open = sh.classList.contains('open');
-    if (!moved) { if (!open) openSheet(true); return; }
-    if (dy < -24) openSheet(true); else if (dy > 24) openSheet(false);
+    if (!moved) { if (!open) { openSheet(true); cardFace(false); } return; }
+    if (dy < -24 && !open) { openSheet(true); cardFace(false); }
+    else if (dy > 24 && open) { openSheet(false); cardFace(true); }
   });
   sh.addEventListener('pointercancel', () => { y0 = null; });
 }
 
+/* with the sheet pulled up, the card turns to its front (the gradient and number), so
+   the words below sit with the colour; tucked back down, it turns to the emotion again.
+   This turns the card without touching the sheet, unlike a tap on the card */
+function cardFace(emotion) {
+  const v = emotion ? 1 : 0;
+  if (mode === 'ar') { if (cardGroup && cardGroup.visible && flipTarget !== v) { flipTarget = v; flipAt = 0; buzz(8); } return; }
+  const card = $('#card2d');
+  if (card && card.classList.contains('flipped') !== emotion) { clearTimeout(flipTimer); card.classList.toggle('flipped', emotion); }
+}
 /* follow a neighbouring feeling. In the deck it opens that card; over the camera the
    floating card turns back, takes the new card's art, and turns to its emotion again */
 async function goTo(c) {

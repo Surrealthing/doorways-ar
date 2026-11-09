@@ -4,6 +4,10 @@
    numOff = how far the printed number sits from the centre of its wave shape (card uv);
    the AR card shifts it by this so the number is centred. similar (3 close feelings) and about (one plain line) are drafts by Claude, edit freely.
    exercise {kind, text, timer?, answer?} is a draft by Claude too (tools/add-exercises.cjs).
+   exercise {kind, text, timer?, answer?} is a draft by Claude too (tools/add-exercises.cjs).
+   exercise {kind, text, timer?, answer?} is a draft by Claude too (tools/add-exercises.cjs).
+   exercise {kind, text, timer?, answer?} is a draft by Claude too (tools/add-exercises.cjs).
+   exercise {kind, text, timer?, answer?} is a draft by Claude too (tools/add-exercises.cjs).
    base = one of the 8 base emotions (Plutchik, love replacing anticipation). */
 window.CARDS=[
  {
@@ -77,8 +81,7 @@ window.CARDS=[
   "about": "feeling calm and still inside. you might feel it when nothing is worrying you.",
   "exercise": {
    "kind": "breath",
-   "text": "breathe in for 4, hold for 4, breathe out for 4. do it 4 times.",
-   "timer": 60
+   "text": "breathe in for 4, hold for 4, breathe out for 4. do it a few times."
   }
  },
  {
@@ -188,9 +191,8 @@ window.CARDS=[
   ],
   "about": "wanting to have fun and be a little silly. you might feel it when you play, joke or try something just for fun.",
   "exercise": {
-   "kind": "task",
-   "text": "be silly for one minute. dance, make a funny face, or hop.",
-   "timer": 60
+   "kind": "make",
+   "text": "draw something with your other hand. let it be wobbly."
   }
  },
  {
@@ -226,8 +228,8 @@ window.CARDS=[
   ],
   "about": "believing that something good can still happen. you might feel it when you are waiting for things to get better.",
   "exercise": {
-   "kind": "words",
-   "text": "say out loud: “good things can still happen.”"
+   "kind": "make",
+   "text": "draw a small door, and what you hope is on the other side."
   }
  },
  {
@@ -447,8 +449,7 @@ window.CARDS=[
   "about": "a gentle, soft kind of care. you might feel it holding a baby, comforting a friend or looking after something small.",
   "exercise": {
    "kind": "sensory",
-   "text": "find something soft. hold it for one minute.",
-   "timer": 60
+   "text": "find something soft and hold it."
   }
  },
  {
@@ -484,8 +485,8 @@ window.CARDS=[
   ],
   "about": "feeling you can count on someone. you might feel it with people who keep their word.",
   "exercise": {
-   "kind": "inquiry",
-   "text": "who would you call if you needed help in the night? why them?"
+   "kind": "task",
+   "text": "tell someone you trust one small, true thing about your day."
   }
  },
  {
@@ -521,8 +522,8 @@ window.CARDS=[
   ],
   "about": "feeling that you are part of a group. you might feel it with family, friends or a team that welcomes you.",
   "exercise": {
-   "kind": "task",
-   "text": "send a “hi” to someone who makes you feel at home."
+   "kind": "make",
+   "text": "draw a circle, and put everyone you feel at home with inside it."
   }
  },
  {
@@ -595,8 +596,8 @@ window.CARDS=[
   ],
   "about": "looking up to someone for what they do or who they are. you might feel it when someone does something you find great.",
   "exercise": {
-   "kind": "inquiry",
-   "text": "think of someone you look up to. what do you have in common?"
+   "kind": "task",
+   "text": "tell someone one thing you admire about them."
   }
  },
  {
@@ -633,8 +634,7 @@ window.CARDS=[
   "about": "feeling amazed by something big or beautiful. you might feel it looking at the sea, the stars or great art.",
   "exercise": {
    "kind": "sensory",
-   "text": "go outside and look up at the sky for one minute.",
-   "timer": 60
+   "text": "go outside and look up at the sky."
   }
  },
  {
@@ -670,9 +670,8 @@ window.CARDS=[
   ],
   "about": "wanting to know or find out more. you might feel it when something is new, strange or interesting.",
   "exercise": {
-   "kind": "inquiry",
-   "text": "a riddle: what has to be broken before you can use it?",
-   "answer": "an egg"
+   "kind": "make",
+   "text": "put paper over something with a texture and rub a pencil across it. see what appears."
   }
  },
  {
@@ -819,8 +818,8 @@ window.CARDS=[
   ],
   "about": "feeling low or unhappy. you might feel it when you lose something or things don’t go the way you hoped.",
   "exercise": {
-   "kind": "media",
-   "text": "listen to a slow song. it’s okay to feel sad."
+   "kind": "make",
+   "text": "colour a page in the colour your sadness feels like today."
   }
  },
  {
@@ -857,7 +856,7 @@ window.CARDS=[
   "about": "deep sadness after losing someone or something important. it can last a long time and come in waves.",
   "exercise": {
    "kind": "words",
-   "text": "say their name out loud. you can still love them."
+   "text": "say “thank you, ____,” and the one thing you’re thankful for."
   }
  },
  {
@@ -968,8 +967,7 @@ window.CARDS=[
   "about": "feeling pain because of what someone said or did. you might feel it when someone is unkind to you.",
   "exercise": {
    "kind": "breath",
-   "text": "put a hand on your chest. breathe slowly for one minute.",
-   "timer": 60
+   "text": "put a hand on your chest and breathe slowly."
   }
  },
  {
@@ -1005,8 +1003,8 @@ window.CARDS=[
   ],
   "about": "wanting someone or something that is far away. you might feel it when you miss a person or a place.",
   "exercise": {
-   "kind": "media",
-   "text": "listen to a song that reminds you of someone or somewhere you miss."
+   "kind": "make",
+   "text": "draw a map to a place or a person you miss."
   }
  },
  {
@@ -1042,8 +1040,7 @@ window.CARDS=[
   "about": "feeling very, very tired, in your body or your mind. rest doesn’t always fix it right away.",
   "exercise": {
    "kind": "breath",
-   "text": "lie down. close your eyes. just breathe for one minute.",
-   "timer": 60
+   "text": "lie down, close your eyes, and just breathe."
   }
  },
  {
@@ -1080,7 +1077,7 @@ window.CARDS=[
   "about": "not feeling much at all. it can happen after a lot of stress or sadness.",
   "exercise": {
    "kind": "sensory",
-   "text": "hold something cold, or wash your face with cold water. how does it feel?"
+   "text": "hold something cold, or wash your face with cold water. notice how it feels."
   }
  },
  {
@@ -1116,8 +1113,8 @@ window.CARDS=[
   ],
   "about": "feeling scared that something bad might happen. your body may tense up or your heart may beat fast.",
   "exercise": {
-   "kind": "sensory",
-   "text": "name 5 things you can see, 4 you can hear, and 3 you can touch."
+   "kind": "make",
+   "text": "draw your fear as a funny little monster, and give it a silly name."
   }
  },
  {
@@ -1154,8 +1151,7 @@ window.CARDS=[
   "about": "worrying about what might happen. you might feel it in your body as a tight chest or a busy mind.",
   "exercise": {
    "kind": "breath",
-   "text": "breathe in for 4, and out for 6. do it 5 times.",
-   "timer": 60
+   "text": "breathe in for 4, and out for 6. do it a few times."
   }
  },
  {
@@ -1339,8 +1335,7 @@ window.CARDS=[
   "about": "feeling mad when something seems wrong or unfair. your body may feel hot or tense.",
   "exercise": {
    "kind": "breath",
-   "text": "breathe in for 4, and out slowly for 8. let your shoulders drop. do it 5 times.",
-   "timer": 60
+   "text": "breathe in for 4, and out slowly for 8. let your shoulders drop."
   }
  },
  {
@@ -1413,8 +1408,8 @@ window.CARDS=[
   ],
   "about": "staying angry about something that happened before. you might feel it when you were treated unfairly.",
   "exercise": {
-   "kind": "inquiry",
-   "text": "what would help you let this go, even a little?"
+   "kind": "task",
+   "text": "write a letter to the person you’re upset with. you don’t have to send it."
   }
  },
  {
@@ -1450,8 +1445,8 @@ window.CARDS=[
   ],
   "about": "being afraid someone will take what you have, like a friend’s attention.",
   "exercise": {
-   "kind": "inquiry",
-   "text": "what are you afraid will happen? how likely is it, really?"
+   "kind": "words",
+   "text": "say: “i don’t have to hold on so tight.”"
   }
  },
  {
@@ -1487,8 +1482,8 @@ window.CARDS=[
   ],
   "about": "wanting something that someone else has. you might feel it when someone gets what you wish for.",
   "exercise": {
-   "kind": "inquiry",
-   "text": "if you had what they have, what would change for you?"
+   "kind": "task",
+   "text": "write down one small step toward what you want."
   }
  },
  {
@@ -1634,8 +1629,8 @@ window.CARDS=[
   ],
   "about": "feeling awkward when others see a mistake you made. your face may get hot or red.",
   "exercise": {
-   "kind": "inquiry",
-   "text": "will anyone remember this in a year? will you?"
+   "kind": "make",
+   "text": "draw the moment as a short comic, and make it funny."
   }
  },
  {
@@ -1671,9 +1666,8 @@ window.CARDS=[
   ],
   "about": "feeling that nothing is interesting. you might feel it when you have nothing to do, or don’t want to do what you have to.",
   "exercise": {
-   "kind": "sensory",
-   "text": "close your eyes. count every sound you can hear for one minute.",
-   "timer": 60
+   "kind": "make",
+   "text": "take photos of one ordinary thing from lots of different angles."
   }
  },
  {
@@ -1710,8 +1704,7 @@ window.CARDS=[
   "about": "not being able to settle or sit still. you might feel you want something to change.",
   "exercise": {
    "kind": "sensory",
-   "text": "press your feet into the floor. feel the ground hold you.",
-   "timer": 60
+   "text": "press your feet into the floor and feel the ground hold you."
   }
  },
  {
@@ -1747,8 +1740,8 @@ window.CARDS=[
   ],
   "about": "not understanding what is going on. you might feel it when things don’t make sense yet.",
   "exercise": {
-   "kind": "inquiry",
-   "text": "what is one thing you do know right now?"
+   "kind": "make",
+   "text": "draw a tangle of lines, then colour in just one of them."
   }
  },
  {
@@ -1784,9 +1777,8 @@ window.CARDS=[
   ],
   "about": "the feeling when something unexpected happens. it can be a good surprise or a bad one.",
   "exercise": {
-   "kind": "inquiry",
-   "text": "a riddle: the more you take, the more you leave behind. what are they?",
-   "answer": "footsteps"
+   "kind": "sensory",
+   "text": "look around and find one thing you’ve never noticed before."
   }
  }
 ];

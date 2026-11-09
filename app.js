@@ -101,41 +101,16 @@ function nextPrompt() {
     requestAnimationFrame(() => requestAnimationFrame(() => p.classList.remove('out')));
   }, T.m * 1000);
 }
-/* ---- try this: one small exercise per card, under the prompt, with a timer when it has one ---- */
+/* ---- try this: one small activity per card, under the prompt, done in the reader's own way ---- */
 $('#sNext').onclick = nextPrompt;
-const KIND = {breath: 'breathe', sensory: 'notice', task: 'do', words: 'say', inquiry: 'think', media: 'listen'};
-let timer = null;
-function stopTimer() { if (timer) { clearInterval(timer.id); timer = null; } }
-const clock = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-function xLabel() {
-  const b = $('#xGo'), x = current && current.exercise;
-  b.classList.remove('timing');
-  b.textContent = x && x.timer ? `start · ${x.timer < 60 ? x.timer + ' sec' : clock(x.timer)}` : x && x.answer ? 'show answer' : '';
-}
+const KIND = {breath: 'breathe', sensory: 'notice', task: 'do', words: 'say', media: 'listen', make: 'make'};
 function fillTry() {
-  stopTimer();
   const x = current && current.exercise;
   $('#sheet .try').style.display = x ? '' : 'none';
   if (!x) return;
   $('#xKind').textContent = KIND[x.kind] || 'try';
-  $('#xText').textContent = x.text; $('#xAns').textContent = '';
-  xLabel();
+  $('#xText').textContent = x.text;
 }
-$('#xGo').onclick = e => {
-  e.stopPropagation();
-  const x = current && current.exercise, b = $('#xGo');
-  if (!x) return;
-  if (x.answer) { $('#xAns').textContent = x.answer; b.textContent = ''; buzz(8); return; }
-  if (!x.timer) return;
-  if (timer) { stopTimer(); xLabel(); return; }               /* tap again to stop */
-  let left = x.timer; b.classList.add('timing'); b.textContent = clock(left); buzz(8);
-  timer = {id: setInterval(() => {
-    left--;
-    if (left > 0) { b.textContent = clock(left); return; }
-    stopTimer(); b.textContent = 'done'; buzz([20, 60, 20]);
-    setTimeout(() => { if (!timer) xLabel(); }, 2500);
-  }, 1000)};
-};
 $('#sCopy').onclick = async e => {
   e.stopPropagation();
   const t = $('#sPrompt').textContent, b = $('#sCopy');

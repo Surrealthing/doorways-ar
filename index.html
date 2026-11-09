@@ -187,12 +187,6 @@
   .xkind{display:flex;align-items:center;gap:7px;font-family:var(--wide);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(11,12,16,.55);margin:0 0 8px}
   .xtext{font-family:var(--serif);font-size:18px;line-height:1.4;margin:0}
   .xkind::before{content:"";width:11px;height:11px;background:var(--ca,#999);-webkit-mask:url(assets/asterisk.svg) center/contain no-repeat;mask:url(assets/asterisk.svg) center/contain no-repeat}
-  .xans{font-family:var(--serif);font-style:italic;font-size:17px;color:rgba(11,12,16,.6);margin:8px 0 0}
-  .xans:empty{display:none}
-  .xgo{display:inline-flex;align-items:center;height:34px;margin-top:12px;padding:0 15px;border:1px solid rgba(11,12,16,.18);border-radius:17px;
-    background:#fff;color:var(--ink);font:500 13px var(--sans);font-variant-numeric:tabular-nums;cursor:pointer}
-  .xgo:empty{display:none}
-  .xgo.timing{background:var(--ink);color:#fff;border-color:var(--ink)}
   /* copy the prompt: an icon, and for a moment a tick and 'copied' */
   .copy{display:inline-flex;align-items:center;gap:6px;height:32px;min-width:32px;margin:-8px -8px -8px 0;padding:0 8px;border:0;border-radius:16px;
     background:none;color:rgba(11,12,16,.55);font:500 12px var(--sans);cursor:pointer;transition:color var(--t-s) var(--ease),background var(--t-s) var(--ease)}
@@ -353,8 +347,6 @@
       <div class="try">
         <p class="xkind">try this · <span id="xKind"></span></p>
         <p class="xtext" id="xText"></p>
-        <p class="xans" id="xAns"></p>
-        <button class="xgo" id="xGo"></button>
       </div>
       <div class="actions">
         <button class="btn ink" id="sNext">next prompt</button>

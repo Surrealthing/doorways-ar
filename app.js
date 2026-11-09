@@ -85,7 +85,7 @@ function fillSheet(c) {
     });
   }
   openSheet(false);
-  $('#sBaseLine').textContent = 'prompt for journaling';
+  fillTry();
   $('#sPrompt').textContent = c.prompts[0];
   $('#sAgain').textContent = mode === 'ar' ? 'scan another' : 'back to the deck';
 }
@@ -101,7 +101,53 @@ function nextPrompt() {
     requestAnimationFrame(() => requestAnimationFrame(() => p.classList.remove('out')));
   }, T.m * 1000);
 }
+/* ---- try this: one small exercise per card, under the prompt, with a timer when it has one ---- */
 $('#sNext').onclick = nextPrompt;
+const KIND = {breath: 'breathe', sensory: 'notice', task: 'do', words: 'say', inquiry: 'think', media: 'listen'};
+let timer = null;
+function stopTimer() { if (timer) { clearInterval(timer.id); timer = null; } }
+const clock = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+function xLabel() {
+  const b = $('#xGo'), x = current && current.exercise;
+  b.classList.remove('timing');
+  b.textContent = x && x.timer ? `start · ${x.timer < 60 ? x.timer + ' sec' : clock(x.timer)}` : x && x.answer ? 'show answer' : '';
+}
+function fillTry() {
+  stopTimer();
+  const x = current && current.exercise;
+  $('#sheet .try').style.display = x ? '' : 'none';
+  if (!x) return;
+  $('#xKind').textContent = KIND[x.kind] || 'try';
+  $('#xText').textContent = x.text; $('#xAns').textContent = '';
+  xLabel();
+}
+$('#xGo').onclick = e => {
+  e.stopPropagation();
+  const x = current && current.exercise, b = $('#xGo');
+  if (!x) return;
+  if (x.answer) { $('#xAns').textContent = x.answer; b.textContent = ''; buzz(8); return; }
+  if (!x.timer) return;
+  if (timer) { stopTimer(); xLabel(); return; }               /* tap again to stop */
+  let left = x.timer; b.classList.add('timing'); b.textContent = clock(left); buzz(8);
+  timer = {id: setInterval(() => {
+    left--;
+    if (left > 0) { b.textContent = clock(left); return; }
+    stopTimer(); b.textContent = 'done'; buzz([20, 60, 20]);
+    setTimeout(() => { if (!timer) xLabel(); }, 2500);
+  }, 1000)};
+};
+$('#sCopy').onclick = async e => {
+  e.stopPropagation();
+  const t = $('#sPrompt').textContent, b = $('#sCopy');
+  try { await navigator.clipboard.writeText(t); }
+  catch (_) {
+    const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;opacity:0'; document.body.append(ta); ta.select();
+    try { document.execCommand('copy'); } catch (__) {} ta.remove();
+  }
+  buzz(8);
+  b.classList.add('done'); clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove('done'), 1600);
+};
 
 /* the sheet peeks first (the feeling's name, its core and one line) so the card stays in
    view; swipe up or tap for the rest, swipe down to tuck it away again */
@@ -248,14 +294,19 @@ function buildCard() {
   scene.add(rig);
 }
 const aP = new THREE.Vector3(), aQ = new THREE.Quaternion(), aS = new THREE.Vector3();
+let jumpN = 0;
 function followAnchor(dt) {
   anchor.group.updateWorldMatrix(true, false);
   anchor.group.matrixWorld.decompose(aP, aQ, aS);
   if (needSnap) { rig.position.copy(aP); rig.quaternion.copy(aQ); rig.scale.copy(aS); needSnap = false; return; }
-  /* small moves are noise and get damped hard; a real move of the card is followed quickly */
+  /* small moves are noise and get damped hard; a real move of the card is followed quickly.
+     One frame that jumps far is usually a bad pose from the tracker, not the card moving:
+     hold still for it, and follow only once the next frame agrees */
   const move = rig.position.distanceTo(aP) / Math.max(aS.x, 1e-6);
-  const kp = 1 - Math.exp(-dt * (6 + 70 * Math.min(1, move / .12)));
-  const kq = 1 - Math.exp(-dt * (5 + 40 * Math.min(1, rig.quaternion.angleTo(aQ) / .35)));
+  if (move > .25 && ++jumpN < 2) return;
+  if (move <= .25) jumpN = 0;
+  const kp = 1 - Math.exp(-dt * (5 + 30 * Math.min(1, move / .15)));
+  const kq = 1 - Math.exp(-dt * (4 + 20 * Math.min(1, rig.quaternion.angleTo(aQ) / .4)));
   rig.position.lerp(aP, kp); rig.quaternion.slerp(aQ, kq); rig.scale.lerp(aS, 1 - Math.exp(-dt * 4));
 }
 /* ---- the reflection sheet after a scan: the same sheet as the deck view ---- */
@@ -322,7 +373,7 @@ async function lockCard(i) {
   if (rig.parent && !floating && !lifting) needSnap = true;
   sheetShownFor = null; showPrompt(false);
   promptIdx = 0; /* sheet filled by fillSheet(c) above */
-  liftAt = performance.now() + T.l * 1000;           /* land on the card, then lift */
+  liftAt = performance.now() + T.m * 1000;           /* land on the card, then lift: the tracker only has to hold briefly */
 }
 function flipTo(v) {
   if (v !== flipTarget) buzz(10);
@@ -345,6 +396,32 @@ const HINTS = {
   reading: ['hold still', 'reading the card'],
   lost:    ['can’t find a card', 'hold the number side flat, in good light, so it fills most of the screen'],
 };
+/* the frame guide's corners: a wave along a rounded L, its phase drifting so the line
+   flows. Tapered to nothing at both ends, so each corner reads as one soft stroke */
+function guidePath(ph) {
+  const L = 40, R = 12, A = 2.4, lam = 11, O = 4, seg = L - R, arc = Math.PI * R / 2, tot = 2 * seg + arc;
+  let d = '';
+  for (let s = 0; s <= tot; s += 1) {
+    let x, y, nx, ny;
+    if (s < seg) { x = 0; y = L - s; nx = -1; ny = 0; }
+    else if (s < seg + arc) { const a = (s - seg) / R; x = R - R * Math.cos(a); y = R - R * Math.sin(a); nx = -Math.cos(a); ny = -Math.sin(a); }
+    else { x = R + (s - seg - arc); y = 0; nx = 0; ny = -1; }
+    const o = A * Math.min(1, s / 6, (tot - s) / 6) * Math.sin(2 * Math.PI * s / lam - ph);
+    d += (s ? 'L' : 'M') + (x + O + nx * o).toFixed(2) + ' ' + (y + O + ny * o).toFixed(2);
+  }
+  return d;
+}
+let guideRaf = 0, guidePh = 0, guideLast = 0;
+const stillMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function drawGuide(t) {
+  const dt = guideLast ? Math.min(.05, (t - guideLast) / 1000) : 0; guideLast = t;
+  guidePh += dt * ($('#guide').classList.contains('reading') ? 10 : 4);
+  const d = guidePath(guidePh);
+  document.querySelectorAll('#guide path').forEach(p => p.setAttribute('d', d));
+  guideRaf = stillMotion ? 0 : requestAnimationFrame(drawGuide);
+}
+function startGuide() { if (!guideRaf) { guideLast = 0; guideRaf = requestAnimationFrame(drawGuide); } }
+function stopGuide() { cancelAnimationFrame(guideRaf); guideRaf = 0; }
 function hint(state) {
   if (state === hintState) return;
   hintState = state;
@@ -353,6 +430,7 @@ function hint(state) {
   el.classList.toggle('looking', state === 'looking' || state === 'warming');
   /* the frame guide shows where to hold the card until one is being read */
   $('#guide').className = 'guide ' + (state === 'looking' || state === 'lost' ? 'on' : state === 'reading' ? 'on reading' : '');
+  if (/on/.test($('#guide').className)) startGuide(); else setTimeout(() => { if (!/on/.test($('#guide').className)) stopGuide(); }, T.m * 1000);
   if (HINTS[state]) { $('#hintT').textContent = HINTS[state][0]; $('#hintS').textContent = HINTS[state][1]; }
 }
 
@@ -377,7 +455,7 @@ let WHITE_PTS = [];
 })();
 function identify(now) {
   if (now - foundAt < 180) return;                      /* let the first pose settle before reading colours */
-  if (now - lastSample < 90) return;
+  if (now - lastSample < 140) return;
   lastSample = now;
   const v = mindar.video; if (!v || !v.videoWidth) return;
   const vw = v.videoWidth, vh = v.videoHeight;
@@ -559,13 +637,13 @@ function frame(now) {
     cardGroup.position.z = .002 + .05 * (1 - a) + Math.sin(Math.PI * f) * .16 + .02 * f;
     cardGroup.scale.setScalar(1 + .04 * (1 - a));
     /* fade with tracking instead of cutting, so a dropped frame never makes it blink */
-    visF += ((tracking ? 1 : 0) - visF) * Math.min(1, dt * 9);
+    visF += ((tracking ? 1 : 0) - visF) * Math.min(1, dt * (tracking ? 9 : 3));
     const op = Math.min(1, appear * 2.5) * visF;
     cardFront.material.uniforms.uOpacity.value = op;
     cardBack.material.uniforms.uOpacity.value = op;
     cardFront.material.uniforms.uReveal.value = cardBack.material.uniforms.uReveal.value = a;
     const motion = Math.max(lifting ? Math.sin(Math.PI * liftP) : 0, Math.sin(Math.PI * flipP));
-    cardFront.material.uniforms.uCA.value = cardBack.material.uniforms.uCA.value = .012 * motion;
+    cardFront.material.uniforms.uCA.value = cardBack.material.uniforms.uCA.value = .004 * motion;   /* a hint; more read as a glitch over the camera */
     if (flipP >= 1 && sheetShownFor !== locked) { sheetShownFor = locked; showPrompt(true); }
   }
   /* lost the card for a while: forget it, so the next one is read fresh */
@@ -626,7 +704,9 @@ async function startAR() {
   buildCard();
   anchor.onTargetFound = () => {
     visible = true; foundAt = performance.now();
-    if (performance.now() - lostAt > 400) needSnap = true;   /* back after a real loss: jump, don't glide */
+    /* back after a real loss: jump, don't glide; but a card already shown glides, so it never pops */
+    if (performance.now() - lostAt > 400 && locked === null) needSnap = true;
+    jumpN = 0;
     if (locked === null) hint('reading');
   };
   anchor.onTargetLost = () => {

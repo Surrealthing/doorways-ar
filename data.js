@@ -3,6 +3,7 @@
    number side, largest first); a/b/c are its first three.
    numOff = how far the printed number sits from the centre of its wave shape (card uv);
    the AR card shifts it by this so the number is centred. similar (3 close feelings) and about (one plain line) are drafts by Claude, edit freely.
+   exercise {kind, text, timer?, answer?} is a draft by Claude too (tools/add-exercises.cjs).
    base = one of the 8 base emotions (Plutchik, love replacing anticipation). */
 window.CARDS=[
  {
@@ -36,7 +37,11 @@ window.CARDS=[
    "playfulness",
    "excitement"
   ],
-  "about": "feeling good and glad. you might feel it when things go well or you are with people you like."
+  "about": "feeling good and glad. you might feel it when things go well or you are with people you like.",
+  "exercise": {
+   "kind": "task",
+   "text": "tell someone one good thing about your day."
+  }
  },
  {
   "id": 2,
@@ -69,7 +74,12 @@ window.CARDS=[
    "relief",
    "acceptance"
   ],
-  "about": "feeling calm and still inside. you might feel it when nothing is worrying you."
+  "about": "feeling calm and still inside. you might feel it when nothing is worrying you.",
+  "exercise": {
+   "kind": "breath",
+   "text": "breathe in for 4, hold for 4, breathe out for 4. do it 4 times.",
+   "timer": 60
+  }
  },
  {
   "id": 3,
@@ -102,7 +112,11 @@ window.CARDS=[
    "gratitude",
    "happiness"
   ],
-  "about": "feeling that what you have is enough. you might feel it on a quiet, ordinary good day."
+  "about": "feeling that what you have is enough. you might feel it on a quiet, ordinary good day.",
+  "exercise": {
+   "kind": "sensory",
+   "text": "look around. name 5 things you are glad to have."
+  }
  },
  {
   "id": 4,
@@ -135,7 +149,11 @@ window.CARDS=[
    "hope",
    "playfulness"
   ],
-  "about": "feeling full of energy about something good. you might feel it before a trip, a party or a new start."
+  "about": "feeling full of energy about something good. you might feel it before a trip, a party or a new start.",
+  "exercise": {
+   "kind": "media",
+   "text": "play a song you love, and move to it."
+  }
  },
  {
   "id": 5,
@@ -168,7 +186,12 @@ window.CARDS=[
    "curiosity",
    "excitement"
   ],
-  "about": "wanting to have fun and be a little silly. you might feel it when you play, joke or try something just for fun."
+  "about": "wanting to have fun and be a little silly. you might feel it when you play, joke or try something just for fun.",
+  "exercise": {
+   "kind": "task",
+   "text": "be silly for one minute. dance, make a funny face, or hop.",
+   "timer": 60
+  }
  },
  {
   "id": 6,
@@ -201,7 +224,11 @@ window.CARDS=[
    "longing",
    "excitement"
   ],
-  "about": "believing that something good can still happen. you might feel it when you are waiting for things to get better."
+  "about": "believing that something good can still happen. you might feel it when you are waiting for things to get better.",
+  "exercise": {
+   "kind": "words",
+   "text": "say out loud: “good things can still happen.”"
+  }
  },
  {
   "id": 7,
@@ -234,7 +261,11 @@ window.CARDS=[
    "pride",
    "trust"
   ],
-  "about": "believing in yourself. you might feel it when you know you can do something."
+  "about": "believing in yourself. you might feel it when you know you can do something.",
+  "exercise": {
+   "kind": "words",
+   "text": "say out loud: “i can do hard things.”"
+  }
  },
  {
   "id": 8,
@@ -266,7 +297,11 @@ window.CARDS=[
    "happiness",
    "admiration"
   ],
-  "about": "feeling good about something you did. you might feel it after working hard or doing something difficult."
+  "about": "feeling good about something you did. you might feel it after working hard or doing something difficult.",
+  "exercise": {
+   "kind": "words",
+   "text": "say out loud: “i did that, and i’m proud of it.”"
+  }
  },
  {
   "id": 9,
@@ -298,7 +333,11 @@ window.CARDS=[
    "gratitude",
    "happiness"
   ],
-  "about": "the feeling when a worry goes away. you might feel it when something you feared turns out fine."
+  "about": "the feeling when a worry goes away. you might feel it when something you feared turns out fine.",
+  "exercise": {
+   "kind": "breath",
+   "text": "take a big breath in. let it out with a long sigh. do it 3 times."
+  }
  },
  {
   "id": 10,
@@ -331,7 +370,11 @@ window.CARDS=[
    "contentment",
    "relief"
   ],
-  "about": "feeling thankful. you might feel it when someone helps you or when you notice the good things you have."
+  "about": "feeling thankful. you might feel it when someone helps you or when you notice the good things you have.",
+  "exercise": {
+   "kind": "task",
+   "text": "send someone a short thank-you message."
+  }
  },
  {
   "id": 11,
@@ -364,7 +407,11 @@ window.CARDS=[
    "compassion",
    "belonging"
   ],
-  "about": "caring deeply about someone. you might feel it for family, friends, a partner or a pet."
+  "about": "caring deeply about someone. you might feel it for family, friends, a partner or a pet.",
+  "exercise": {
+   "kind": "task",
+   "text": "do one small kind thing for someone you love."
+  }
  },
  {
   "id": 12,
@@ -397,7 +444,12 @@ window.CARDS=[
    "compassion",
    "vulnerability"
   ],
-  "about": "a gentle, soft kind of care. you might feel it holding a baby, comforting a friend or looking after something small."
+  "about": "a gentle, soft kind of care. you might feel it holding a baby, comforting a friend or looking after something small.",
+  "exercise": {
+   "kind": "sensory",
+   "text": "find something soft. hold it for one minute.",
+   "timer": 60
+  }
  },
  {
   "id": 13,
@@ -430,7 +482,11 @@ window.CARDS=[
    "acceptance",
    "confidence"
   ],
-  "about": "feeling you can count on someone. you might feel it with people who keep their word."
+  "about": "feeling you can count on someone. you might feel it with people who keep their word.",
+  "exercise": {
+   "kind": "inquiry",
+   "text": "who would you call if you needed help in the night? why them?"
+  }
  },
  {
   "id": 14,
@@ -463,7 +519,11 @@ window.CARDS=[
    "love",
    "acceptance"
   ],
-  "about": "feeling that you are part of a group. you might feel it with family, friends or a team that welcomes you."
+  "about": "feeling that you are part of a group. you might feel it with family, friends or a team that welcomes you.",
+  "exercise": {
+   "kind": "task",
+   "text": "send a “hi” to someone who makes you feel at home."
+  }
  },
  {
   "id": 15,
@@ -496,7 +556,11 @@ window.CARDS=[
    "love",
    "acceptance"
   ],
-  "about": "feeling for someone who is hurting and wanting to help. you might feel it when you see someone sad or in pain."
+  "about": "feeling for someone who is hurting and wanting to help. you might feel it when you see someone sad or in pain.",
+  "exercise": {
+   "kind": "words",
+   "text": "think of someone who is having a hard time. say: “i hope you are okay.”"
+  }
  },
  {
   "id": 16,
@@ -529,7 +593,11 @@ window.CARDS=[
    "gratitude",
    "envy"
   ],
-  "about": "looking up to someone for what they do or who they are. you might feel it when someone does something you find great."
+  "about": "looking up to someone for what they do or who they are. you might feel it when someone does something you find great.",
+  "exercise": {
+   "kind": "inquiry",
+   "text": "think of someone you look up to. what do you have in common?"
+  }
  },
  {
   "id": 17,
@@ -562,7 +630,12 @@ window.CARDS=[
    "admiration",
    "curiosity"
   ],
-  "about": "feeling amazed by something big or beautiful. you might feel it looking at the sea, the stars or great art."
+  "about": "feeling amazed by something big or beautiful. you might feel it looking at the sea, the stars or great art.",
+  "exercise": {
+   "kind": "sensory",
+   "text": "go outside and look up at the sky for one minute.",
+   "timer": 60
+  }
  },
  {
   "id": 18,
@@ -595,7 +668,12 @@ window.CARDS=[
    "excitement",
    "playfulness"
   ],
-  "about": "wanting to know or find out more. you might feel it when something is new, strange or interesting."
+  "about": "wanting to know or find out more. you might feel it when something is new, strange or interesting.",
+  "exercise": {
+   "kind": "inquiry",
+   "text": "a riddle: what has to be broken before you can use it?",
+   "answer": "an egg"
+  }
  },
  {
   "id": 19,
@@ -628,7 +706,11 @@ window.CARDS=[
    "sadness",
    "gratitude"
   ],
-  "about": "missing a happy time from the past. you might feel it with an old song, photo or smell."
+  "about": "missing a happy time from the past. you might feel it with an old song, photo or smell.",
+  "exercise": {
+   "kind": "media",
+   "text": "play a song from your past. listen to the whole song."
+  }
  },
  {
   "id": 20,
@@ -661,7 +743,11 @@ window.CARDS=[
    "compassion",
    "trust"
   ],
-  "about": "letting something be as it is. you might feel it when you stop fighting something you cannot change."
+  "about": "letting something be as it is. you might feel it when you stop fighting something you cannot change.",
+  "exercise": {
+   "kind": "words",
+   "text": "say slowly: “this is how it is right now.” say it 3 times."
+  }
  },
  {
   "id": 21,
@@ -694,7 +780,11 @@ window.CARDS=[
    "hope",
    "vulnerability"
   ],
-  "about": "doing something even though you are scared. you might feel it when you speak up or try something new."
+  "about": "doing something even though you are scared. you might feel it when you speak up or try something new.",
+  "exercise": {
+   "kind": "task",
+   "text": "pick one thing you’re scared to do. take one tiny step today."
+  }
  },
  {
   "id": 22,
@@ -727,7 +817,11 @@ window.CARDS=[
    "disappointment",
    "loneliness"
   ],
-  "about": "feeling low or unhappy. you might feel it when you lose something or things don’t go the way you hoped."
+  "about": "feeling low or unhappy. you might feel it when you lose something or things don’t go the way you hoped.",
+  "exercise": {
+   "kind": "media",
+   "text": "listen to a slow song. it’s okay to feel sad."
+  }
  },
  {
   "id": 23,
@@ -760,7 +854,11 @@ window.CARDS=[
    "longing",
    "numbness"
   ],
-  "about": "deep sadness after losing someone or something important. it can last a long time and come in waves."
+  "about": "deep sadness after losing someone or something important. it can last a long time and come in waves.",
+  "exercise": {
+   "kind": "words",
+   "text": "say their name out loud. you can still love them."
+  }
  },
  {
   "id": 24,
@@ -793,7 +891,11 @@ window.CARDS=[
    "sadness",
    "insecurity"
   ],
-  "about": "feeling alone or not close to anyone. you can feel it even when there are people around you."
+  "about": "feeling alone or not close to anyone. you can feel it even when there are people around you.",
+  "exercise": {
+   "kind": "task",
+   "text": "send someone a message: “thinking of you.”"
+  }
  },
  {
   "id": 25,
@@ -826,7 +928,11 @@ window.CARDS=[
    "frustration",
    "hurt"
   ],
-  "about": "feeling let down when something doesn’t happen the way you hoped."
+  "about": "feeling let down when something doesn’t happen the way you hoped.",
+  "exercise": {
+   "kind": "words",
+   "text": "say: “it didn’t go how i hoped, and i’m okay.”"
+  }
  },
  {
   "id": 26,
@@ -859,7 +965,12 @@ window.CARDS=[
    "resentment",
    "vulnerability"
   ],
-  "about": "feeling pain because of what someone said or did. you might feel it when someone is unkind to you."
+  "about": "feeling pain because of what someone said or did. you might feel it when someone is unkind to you.",
+  "exercise": {
+   "kind": "breath",
+   "text": "put a hand on your chest. breathe slowly for one minute.",
+   "timer": 60
+  }
  },
  {
   "id": 27,
@@ -892,7 +1003,11 @@ window.CARDS=[
    "hope",
    "loneliness"
   ],
-  "about": "wanting someone or something that is far away. you might feel it when you miss a person or a place."
+  "about": "wanting someone or something that is far away. you might feel it when you miss a person or a place.",
+  "exercise": {
+   "kind": "media",
+   "text": "listen to a song that reminds you of someone or somewhere you miss."
+  }
  },
  {
   "id": 28,
@@ -924,7 +1039,12 @@ window.CARDS=[
    "overwhelm",
    "sadness"
   ],
-  "about": "feeling very, very tired, in your body or your mind. rest doesn’t always fix it right away."
+  "about": "feeling very, very tired, in your body or your mind. rest doesn’t always fix it right away.",
+  "exercise": {
+   "kind": "breath",
+   "text": "lie down. close your eyes. just breathe for one minute.",
+   "timer": 60
+  }
  },
  {
   "id": 29,
@@ -957,7 +1077,11 @@ window.CARDS=[
    "boredom",
    "grief"
   ],
-  "about": "not feeling much at all. it can happen after a lot of stress or sadness."
+  "about": "not feeling much at all. it can happen after a lot of stress or sadness.",
+  "exercise": {
+   "kind": "sensory",
+   "text": "hold something cold, or wash your face with cold water. how does it feel?"
+  }
  },
  {
   "id": 30,
@@ -990,7 +1114,11 @@ window.CARDS=[
    "helplessness",
    "vulnerability"
   ],
-  "about": "feeling scared that something bad might happen. your body may tense up or your heart may beat fast."
+  "about": "feeling scared that something bad might happen. your body may tense up or your heart may beat fast.",
+  "exercise": {
+   "kind": "sensory",
+   "text": "name 5 things you can see, 4 you can hear, and 3 you can touch."
+  }
  },
  {
   "id": 31,
@@ -1023,7 +1151,12 @@ window.CARDS=[
    "overwhelm",
    "restlessness"
   ],
-  "about": "worrying about what might happen. you might feel it in your body as a tight chest or a busy mind."
+  "about": "worrying about what might happen. you might feel it in your body as a tight chest or a busy mind.",
+  "exercise": {
+   "kind": "breath",
+   "text": "breathe in for 4, and out for 6. do it 5 times.",
+   "timer": 60
+  }
  },
  {
   "id": 32,
@@ -1056,7 +1189,11 @@ window.CARDS=[
    "exhaustion",
    "helplessness"
   ],
-  "about": "feeling that there is too much to handle at once. you might feel it when you have too many things to do."
+  "about": "feeling that there is too much to handle at once. you might feel it when you have too many things to do.",
+  "exercise": {
+   "kind": "breath",
+   "text": "take two quick breaths in through your nose, then one long breath out. do it 3 times."
+  }
  },
  {
   "id": 33,
@@ -1089,7 +1226,11 @@ window.CARDS=[
    "shame",
    "envy"
   ],
-  "about": "feeling unsure of yourself, or not good enough. you might feel it when you compare yourself to others."
+  "about": "feeling unsure of yourself, or not good enough. you might feel it when you compare yourself to others.",
+  "exercise": {
+   "kind": "words",
+   "text": "say out loud: “i am enough, just as i am.”"
+  }
  },
  {
   "id": 34,
@@ -1121,7 +1262,11 @@ window.CARDS=[
    "tenderness",
    "fear"
   ],
-  "about": "feeling open and unprotected. you might feel it when you share something personal or ask for help."
+  "about": "feeling open and unprotected. you might feel it when you share something personal or ask for help.",
+  "exercise": {
+   "kind": "task",
+   "text": "tell someone you trust how you really feel today."
+  }
  },
  {
   "id": 35,
@@ -1154,7 +1299,11 @@ window.CARDS=[
    "fear",
    "frustration"
   ],
-  "about": "feeling there is nothing you can do to change a situation. you might feel it when things are out of your control."
+  "about": "feeling there is nothing you can do to change a situation. you might feel it when things are out of your control.",
+  "exercise": {
+   "kind": "task",
+   "text": "do one small thing you can: drink water, open a window, or tidy one spot."
+  }
  },
  {
   "id": 36,
@@ -1187,7 +1336,12 @@ window.CARDS=[
    "resentment",
    "hurt"
   ],
-  "about": "feeling mad when something seems wrong or unfair. your body may feel hot or tense."
+  "about": "feeling mad when something seems wrong or unfair. your body may feel hot or tense.",
+  "exercise": {
+   "kind": "breath",
+   "text": "breathe in for 4, and out slowly for 8. let your shoulders drop. do it 5 times.",
+   "timer": 60
+  }
  },
  {
   "id": 37,
@@ -1220,7 +1374,11 @@ window.CARDS=[
    "restlessness",
    "disappointment"
   ],
-  "about": "feeling annoyed when something keeps getting in your way. you might feel it when things don’t work."
+  "about": "feeling annoyed when something keeps getting in your way. you might feel it when things don’t work.",
+  "exercise": {
+   "kind": "breath",
+   "text": "blow out hard, like blowing out candles. do it 5 times."
+  }
  },
  {
   "id": 38,
@@ -1253,7 +1411,11 @@ window.CARDS=[
    "hurt",
    "jealousy"
   ],
-  "about": "staying angry about something that happened before. you might feel it when you were treated unfairly."
+  "about": "staying angry about something that happened before. you might feel it when you were treated unfairly.",
+  "exercise": {
+   "kind": "inquiry",
+   "text": "what would help you let this go, even a little?"
+  }
  },
  {
   "id": 39,
@@ -1286,7 +1448,11 @@ window.CARDS=[
    "insecurity",
    "resentment"
   ],
-  "about": "being afraid someone will take what you have, like a friend’s attention."
+  "about": "being afraid someone will take what you have, like a friend’s attention.",
+  "exercise": {
+   "kind": "inquiry",
+   "text": "what are you afraid will happen? how likely is it, really?"
+  }
  },
  {
   "id": 40,
@@ -1319,7 +1485,11 @@ window.CARDS=[
    "admiration",
    "insecurity"
   ],
-  "about": "wanting something that someone else has. you might feel it when someone gets what you wish for."
+  "about": "wanting something that someone else has. you might feel it when someone gets what you wish for.",
+  "exercise": {
+   "kind": "inquiry",
+   "text": "if you had what they have, what would change for you?"
+  }
  },
  {
   "id": 41,
@@ -1352,7 +1522,11 @@ window.CARDS=[
    "resentment",
    "anger"
   ],
-  "about": "a strong feeling of not liking something and wanting to pull away. it can be about food, smells or how people act."
+  "about": "a strong feeling of not liking something and wanting to pull away. it can be about food, smells or how people act.",
+  "exercise": {
+   "kind": "sensory",
+   "text": "wash your hands slowly in warm water. notice how you feel."
+  }
  },
  {
   "id": 42,
@@ -1385,7 +1559,11 @@ window.CARDS=[
    "embarrassment",
    "compassion"
   ],
-  "about": "feeling bad about something you did. you might feel it when you hurt someone or broke a promise."
+  "about": "feeling bad about something you did. you might feel it when you hurt someone or broke a promise.",
+  "exercise": {
+   "kind": "task",
+   "text": "say sorry, or fix one small thing, if you can."
+  }
  },
  {
   "id": 43,
@@ -1417,7 +1595,11 @@ window.CARDS=[
    "embarrassment",
    "insecurity"
   ],
-  "about": "feeling bad about who you are, not just what you did. it can make you want to hide."
+  "about": "feeling bad about who you are, not just what you did. it can make you want to hide.",
+  "exercise": {
+   "kind": "words",
+   "text": "put a hand on your heart and say: “i made a mistake. i am still good.”"
+  }
  },
  {
   "id": 44,
@@ -1450,7 +1632,11 @@ window.CARDS=[
    "insecurity",
    "guilt"
   ],
-  "about": "feeling awkward when others see a mistake you made. your face may get hot or red."
+  "about": "feeling awkward when others see a mistake you made. your face may get hot or red.",
+  "exercise": {
+   "kind": "inquiry",
+   "text": "will anyone remember this in a year? will you?"
+  }
  },
  {
   "id": 45,
@@ -1483,7 +1669,12 @@ window.CARDS=[
    "numbness",
    "curiosity"
   ],
-  "about": "feeling that nothing is interesting. you might feel it when you have nothing to do, or don’t want to do what you have to."
+  "about": "feeling that nothing is interesting. you might feel it when you have nothing to do, or don’t want to do what you have to.",
+  "exercise": {
+   "kind": "sensory",
+   "text": "close your eyes. count every sound you can hear for one minute.",
+   "timer": 60
+  }
  },
  {
   "id": 46,
@@ -1516,7 +1707,12 @@ window.CARDS=[
    "anxiety",
    "frustration"
   ],
-  "about": "not being able to settle or sit still. you might feel you want something to change."
+  "about": "not being able to settle or sit still. you might feel you want something to change.",
+  "exercise": {
+   "kind": "sensory",
+   "text": "press your feet into the floor. feel the ground hold you.",
+   "timer": 60
+  }
  },
  {
   "id": 47,
@@ -1549,7 +1745,11 @@ window.CARDS=[
    "surprise",
    "anxiety"
   ],
-  "about": "not understanding what is going on. you might feel it when things don’t make sense yet."
+  "about": "not understanding what is going on. you might feel it when things don’t make sense yet.",
+  "exercise": {
+   "kind": "inquiry",
+   "text": "what is one thing you do know right now?"
+  }
  },
  {
   "id": 48,
@@ -1582,6 +1782,11 @@ window.CARDS=[
    "confusion",
    "excitement"
   ],
-  "about": "the feeling when something unexpected happens. it can be a good surprise or a bad one."
+  "about": "the feeling when something unexpected happens. it can be a good surprise or a bad one.",
+  "exercise": {
+   "kind": "inquiry",
+   "text": "a riddle: the more you take, the more you leave behind. what are they?",
+   "answer": "footsteps"
+  }
  }
 ];

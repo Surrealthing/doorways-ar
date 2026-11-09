@@ -7,3 +7,6 @@ node_modules/
 # source renders for tools/centre-numbers.swift, not served
 tools/orig-num/
 tools/orig-num-2x/
+# content sheet for editing, not part of the site
+Doorways-content.xlsx
+Doorways-prompts-activities.xlsx

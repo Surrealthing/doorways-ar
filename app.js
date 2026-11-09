@@ -67,7 +67,25 @@ function setColours(c) {
 }
 function fillSheet(c) {
   current = c; promptIdx = 0;
-  $('#sBaseLine').textContent = 'prompt for journaling';   /* the card already said the name; the prompt is the point */
+  $('#sName').textContent = c.name;
+  $('#sNum').textContent = c.num;
+  $('#sCore').textContent = c.base === c.name ? 'core emotion' : c.base;
+  $('#sheet').style.setProperty('--ca', c.a);
+  $('#sAbout').textContent = c.about || '';
+  /* its neighbours are doorways too: each one opens that card */
+  const sim = $('#sSimilar'); sim.textContent = '';
+  if (c.similar) {
+    sim.append('close to ');
+    c.similar.forEach((n, k) => {
+      const to = CARDS.find(x => x.name === n); if (!to) return;
+      const b = document.createElement('button'); b.className = 'rel'; b.textContent = n;
+      b.onclick = e => { e.stopPropagation(); goTo(to); };
+      if (k) sim.append(k === c.similar.length - 1 ? ' and ' : ', ');
+      sim.append(b);
+    });
+  }
+  openSheet(false);
+  $('#sBaseLine').textContent = 'prompt for journaling';
   $('#sPrompt').textContent = c.prompts[0];
   $('#sAgain').textContent = mode === 'ar' ? 'scan another' : 'back to the deck';
 }
@@ -84,6 +102,43 @@ function nextPrompt() {
   }, T.m * 1000);
 }
 $('#sNext').onclick = nextPrompt;
+
+/* the sheet peeks first (the feeling's name, its core and one line) so the card stays in
+   view; swipe up or tap for the rest, swipe down to tuck it away again */
+function openSheet(on) {
+  const sh = $('#sheet');
+  sh.classList.toggle('open', on);
+  if (!on) requestAnimationFrame(() => sh.style.setProperty('--peek', $('#sSimilar').offsetTop - 2 + 'px'));
+}
+{
+  const sh = $('#sheet'); let y0 = null, moved = false;
+  sh.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; y0 = e.clientY; moved = false; });
+  sh.addEventListener('pointermove', e => { if (y0 !== null && Math.abs(e.clientY - y0) > 8) moved = true; });
+  sh.addEventListener('pointerup', e => {
+    if (y0 === null) return;
+    const dy = e.clientY - y0; y0 = null;
+    const open = sh.classList.contains('open');
+    if (!moved) { if (!open) openSheet(true); return; }
+    if (dy < -24) openSheet(true); else if (dy > 24) openSheet(false);
+  });
+  sh.addEventListener('pointercancel', () => { y0 = null; });
+}
+
+/* follow a neighbouring feeling. In the deck it opens that card; over the camera the
+   floating card turns back, takes the new card's art, and turns to its emotion again */
+async function goTo(c) {
+  if (mode !== 'ar' || !floating) return openView(c);
+  let tn, tf;
+  try { [tn, tf] = await Promise.all([tex(`assets/cards/num-${pad(c.id)}.jpg`), tex(`assets/cards/face-${pad(c.id)}.jpg`)]); }
+  catch (e) { return; }
+  locked = CARDS.indexOf(c); current = c; setColours(c);
+  for (const m of [cardFront.material, cardBack.material]) { m.uniforms.uA.value.set(c.a); m.uniforms.uB.value.set(c.b); }
+  cardFront.material.uniforms.map.value = tn; cardBack.material.uniforms.map.value = tf;
+  showPrompt(false); sheetShownFor = null;
+  flipP = 0; flipTarget = 0; appearAt = performance.now();
+  flipAt = performance.now() + T.l * 1000;            /* a breath on the number side, then it turns */
+  buzz(10);
+}
 $('#sAgain').onclick = () => mode === 'ar' ? resetCard() : closeView();
 
 /* ================================ AR ====================================== */
@@ -285,6 +340,7 @@ function resetCard() {
    card is being read, and after a while with no card, one clear message */
 let hintState = '', searchSince = 0;
 const HINTS = {
+  warming: ['getting ready', 'have a card ready, number side up'],
   looking: ['looking for a card', 'hold the number side up to the camera'],
   reading: ['hold still', 'reading the card'],
   lost:    ['can’t find a card', 'hold the number side flat, in good light, so it fills most of the screen'],
@@ -294,7 +350,9 @@ function hint(state) {
   hintState = state;
   const el = $('#hint');
   el.classList.toggle('hide', !state);
-  el.classList.toggle('looking', state === 'looking');
+  el.classList.toggle('looking', state === 'looking' || state === 'warming');
+  /* the frame guide shows where to hold the card until one is being read */
+  $('#guide').className = 'guide ' + (state === 'looking' || state === 'lost' ? 'on' : state === 'reading' ? 'on reading' : '');
   if (HINTS[state]) { $('#hintT').textContent = HINTS[state][0]; $('#hintS').textContent = HINTS[state][1]; }
 }
 
@@ -519,8 +577,23 @@ function frame(now) {
   if (visible && locked === null) identify(now);
 }
 
+/* the camera is asked for here, still inside the begin tap, with our own constraints:
+   720p so the printed number has enough pixels to read (MindAR's default leaves iPhones
+   at 640×480), and real error names when it fails */
+async function openCamera() {
+  const want = {audio: false, video: {facingMode: {ideal: 'environment'}, width: {ideal: 1280}, height: {ideal: 720}}};
+  try { return await navigator.mediaDevices.getUserMedia(want); }
+  catch (e) {
+    if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) throw e;
+    if (e && e.name === 'OverconstrainedError') return navigator.mediaDevices.getUserMedia({audio: false, video: {facingMode: 'environment'}});
+    /* a camera still releasing from the last session can fail once */
+    await new Promise(r => setTimeout(r, 700));
+    return navigator.mediaDevices.getUserMedia(want);
+  }
+}
 async function startAR() {
   mode = 'ar';
+  const stream = await openCamera();
   show('#ar'); document.body.classList.add('scanning');
   mindar = new MindARThree({
     container: $('#stage'), imageTargetSrc: 'assets/targets.mind', maxTrack: 1,
@@ -529,11 +602,27 @@ async function startAR() {
        (beta .001 made the overlay trail behind a moving card.) */
     filterMinCF: .001, filterBeta: 10, warmupTolerance: 2, missTolerance: 8,
   });
+  /* hand MindAR our stream instead of letting it ask again; the room shows as soon as the
+     video plays, while the tracker warms up behind it (the slow part, a few seconds) */
+  mindar._startVideo = () => new Promise((resolve, reject) => {
+    const v = mindar.video = document.createElement('video');
+    v.setAttribute('autoplay', ''); v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.muted = true;
+    Object.assign(v.style, {position: 'absolute', top: '0px', left: '0px', width: '100%', height: '100%', zIndex: '-2'});
+    $('#stage').appendChild(v);
+    v.addEventListener('loadedmetadata', () => {
+      v.setAttribute('width', v.videoWidth); v.setAttribute('height', v.videoHeight);
+      show('#boot', false); hint('warming');
+      resolve();
+    }, {once: true});
+    v.addEventListener('error', () => reject(new Error('video failed')), {once: true});
+    v.srcObject = stream;
+    v.play().catch(() => {});
+  });
   ({renderer, scene, camera} = mindar);
   renderer.outputColorSpace = THREE.LinearSRGBColorSpace;      /* the shader writes display values directly */
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 3));   /* sharp on retina screens */
   anchor = mindar.addAnchor(0);
-  searchSince = performance.now(); hintState = ''; hint('looking');
+  hintState = '';
   buildCard();
   anchor.onTargetFound = () => {
     visible = true; foundAt = performance.now();
@@ -592,6 +681,7 @@ async function startAR() {
   await Promise.race([mindar.start(), timeout]);
   if (!mindar.video || !mindar.video.videoWidth) await new Promise(r => setTimeout(r, 600));
   if (!mindar.video || !mindar.video.srcObject) throw new Error('no camera stream');
+  searchSince = performance.now(); hint('looking');
   const veil = document.createElement('div'); veil.className = 'veil';
   $('#stage').insertBefore(veil, renderer.domElement);
   renderer.setAnimationLoop(frame);
@@ -600,6 +690,8 @@ async function startAR() {
 function stopAR() {
   if (!mindar) return;
   try { renderer.setAnimationLoop(null); mindar.stop(); } catch (e) {}
+  /* stop() needs a finished controller; if startup failed half way, free the camera here */
+  try { mindar.video && mindar.video.srcObject && mindar.video.srcObject.getTracks().forEach(t => t.stop()); } catch (e) {}
   $('#stage').innerHTML = ''; mindar = null; locked = null; visible = false;
   /* leave nothing half-done for the next session */
   floating = lifting = false; liftAt = flipAt = 0; needSnap = true; votes.length = 0; visF = 0;
@@ -791,9 +883,7 @@ async function boot() {
       : 'scanning needs a secure (https) link. choose your card below.');
   }
   try {
-    /* a camera that is still releasing from the last session can fail once; try a second time */
-    try { await startAR(); }
-    catch (first) { if (first) throw first; stopAR(); await new Promise(r => setTimeout(r, 700)); show('#boot'); await startAR(); }
+    await startAR();                                 /* openCamera retries a busy camera once */
     cameraOK = true;
     show('#boot', false);
   } catch (e) {
@@ -1021,6 +1111,8 @@ document.addEventListener('pointerdown', e => {
 
 dropCards();
 buildGrid();
+/* the tracker's target file is fetched while the home screen is up, so 'begin' is quicker */
+(window.requestIdleCallback || setTimeout)(() => fetch('assets/targets.mind').catch(() => {}));
 /* lands on the home screen; the camera only opens from 'begin scanning a card' */
 route();
 if (/[?&]scan/.test(location.search)) begin();

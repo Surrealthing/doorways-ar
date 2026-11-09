@@ -58,7 +58,7 @@
      buttons carry the same changing frames (--noise, set in app.js) in screen blend */
   .btn.ink,.btn.secondary,.small{position:relative;overflow:hidden;isolation:isolate}
   .btn.ink::after,.btn.secondary::after,.small::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
-    background:var(--noise) var(--noise-pos,0 0)/180px 180px;mix-blend-mode:screen;opacity:.1}
+    background:var(--noise) var(--noise-pos,0 0)/180px 180px;mix-blend-mode:screen;opacity:.04}
   .icon{width:40px;height:40px;border-radius:20px;display:grid;place-items:center;font-size:17px;background:var(--panel)}
 
   /* ---- home ----
@@ -132,23 +132,63 @@
   .hint span{font-family:var(--serif);font-size:15px;line-height:1.45;color:rgba(243,244,246,.82);max-width:300px}
   .hint.looking b{animation:breathe calc(var(--t-l) * 2) var(--ease) infinite alternate}
   .hint.hide{opacity:0;transform:translateY(8px);pointer-events:none}
+  /* where to hold the card: four corners in the card's own proportion, the size that reads
+     well. They draw in while looking and close a little while a card is being read */
+  .guide{--c:rgba(255,255,255,.8);--l:28px;--w:2px;position:absolute;z-index:3;left:50%;top:44%;
+    width:min(66vw,34dvh);aspect-ratio:1448/2174;pointer-events:none;opacity:0;transform:translate(-50%,-50%) scale(1.06);
+    transition:opacity var(--t-m) var(--ease),transform var(--t-m) var(--ease);
+    background:linear-gradient(var(--c),var(--c)) 0 0/var(--l) var(--w),linear-gradient(var(--c),var(--c)) 0 0/var(--w) var(--l),
+      linear-gradient(var(--c),var(--c)) 100% 0/var(--l) var(--w),linear-gradient(var(--c),var(--c)) 100% 0/var(--w) var(--l),
+      linear-gradient(var(--c),var(--c)) 0 100%/var(--l) var(--w),linear-gradient(var(--c),var(--c)) 0 100%/var(--w) var(--l),
+      linear-gradient(var(--c),var(--c)) 100% 100%/var(--l) var(--w),linear-gradient(var(--c),var(--c)) 100% 100%/var(--w) var(--l);
+    background-repeat:no-repeat;filter:drop-shadow(0 1px 6px rgba(0,0,0,.4))}
+  .guide.on{opacity:.9;transform:translate(-50%,-50%)}
+  .guide.reading{--c:#fff;opacity:1;transform:translate(-50%,-50%) scale(.96)}
 
   /* ---- the reflection sheet (after a scan, and in the deck view) ---- */
-  .sheet{position:fixed;z-index:6;left:12px;right:12px;bottom:calc(64px + var(--safe-b));   /* clear of Netlify's free-plan badge */
-    max-width:520px;margin:0 auto;padding:22px 22px 18px;border-radius:24px;background:var(--paper);color:var(--ink);
+  .sheet{position:fixed;z-index:6;left:12px;right:12px;bottom:calc(12px + var(--safe-b));
+    max-width:520px;margin:0 auto;padding:26px 24px 22px;border-radius:26px;background:var(--paper);color:var(--ink);
     box-shadow:0 20px 50px -20px rgba(0,0,0,.6);
     transform:translateY(calc(100% + 40px));opacity:0;transition:transform var(--t-m) var(--ease),opacity var(--t-m) var(--ease)}
-  .sheet.on{transform:none;opacity:1}
-  .sheet .base{font-family:var(--wide);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(11,12,16,.5);margin:0 0 8px}
-  .prompt{font-family:var(--serif);font-size:21px;line-height:1.38;margin:0;min-height:58px;
+  .sheet.on{transform:translateY(calc(100% - var(--peek, 100%)));opacity:1}
+  .sheet.on.open{transform:none}
+  .sheet{max-height:calc(100dvh - 24px - var(--safe-t) - var(--safe-b));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;cursor:grab}
+  .sheet .grab{display:block;width:36px;height:4px;border-radius:2px;background:rgba(11,12,16,.16);margin:-10px auto 14px}
+  /* tucked away, the parts below the peek fade so nothing half-shows at the edge */
+  .sheet .similar,.sheet .ask{transition:opacity var(--t-m) var(--ease)}
+  .sheet.on:not(.open) .similar,.sheet.on:not(.open) .ask{opacity:0;pointer-events:none}
+  .sheet .base{font-family:var(--wide);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(11,12,16,.5);margin:0 0 12px}
+  /* the feeling first: its name, the core emotion it belongs to, one plain line, its neighbours */
+  .feel{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  .feel h2{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.1;margin:0;letter-spacing:-.005em}
+  .feel h2 .num{font-family:var(--wide);font-size:12px;letter-spacing:.08em;color:rgba(11,12,16,.45);margin-left:10px;vertical-align:.9em}
+  .core{flex:none;display:inline-flex;align-items:center;gap:7px;font-family:var(--wide);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(11,12,16,.62)}
+  /* the we*re asterisk, in the card's own colour */
+  .core::before{content:"";width:12px;height:12px;background:var(--ca,#999);-webkit-mask:url(assets/asterisk.svg) center/contain no-repeat;mask:url(assets/asterisk.svg) center/contain no-repeat}
+  .about{font-size:15px;line-height:1.5;color:rgba(11,12,16,.74);margin:14px 0 0}
+  .similar{font-size:13px;line-height:1.4;color:rgba(11,12,16,.5);margin:12px 0 0}
+  .similar .rel{font:inherit;font-weight:500;color:rgba(11,12,16,.8);background:none;border:0;padding:0;cursor:pointer;
+    text-decoration:underline;text-decoration-color:rgba(11,12,16,.25);text-underline-offset:3px}
+  .ask{position:relative;margin-top:24px;padding-top:26px}
+  /* the divider is a slow wave in the card's colour, drifting sideways (a seamless 28px loop) */
+  .ask::before{content:"";position:absolute;left:0;right:0;top:-4px;height:8px;background:var(--ca,#999);opacity:.85;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='8' viewBox='0 0 28 8'%3E%3Cpath d='M0 4 C 7 0.5, 7 0.5, 14 4 S 21 7.5, 28 4' fill='none' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E") 0 0/28px 8px repeat-x;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='8' viewBox='0 0 28 8'%3E%3Cpath d='M0 4 C 7 0.5, 7 0.5, 14 4 S 21 7.5, 28 4' fill='none' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E") 0 0/28px 8px repeat-x;
+    animation:wave 2.8s linear infinite}
+  @keyframes wave{to{-webkit-mask-position:28px 0;mask-position:28px 0}}
+  @media (prefers-reduced-motion:reduce){.ask::before{animation:none}}
+  .prompt{font-family:var(--serif);font-size:20px;line-height:1.38;margin:0;min-height:28px;
     transition:opacity var(--t-m) var(--ease),transform var(--t-m) var(--ease)}
   .prompt.out{opacity:0;transform:translateY(10px)}
-  .actions{display:flex;gap:8px;margin-top:14px}
+  .actions{display:flex;gap:10px;margin-top:24px}
+  /* the focus ring is for keyboards; a tap or click doesn't leave one behind */
+  button:focus:not(:focus-visible){outline:none}
   .actions .btn{flex:1;height:46px;font-size:14px}
   .reveal>*{opacity:0;transform:translateY(12px);transition:opacity var(--t-m) var(--ease),transform var(--t-m) var(--ease)}
   .sheet.on .reveal>*{opacity:1;transform:none}
   .sheet.on .reveal>*:nth-child(2){transition-delay:calc(var(--t-s) * .5)}
   .sheet.on .reveal>*:nth-child(3){transition-delay:var(--t-s)}
+  .sheet.on .reveal>*:nth-child(4){transition-delay:calc(var(--t-s) * 1.5)}
+  .sheet.on .reveal>*:nth-child(5){transition-delay:calc(var(--t-s) * 2)}
 
   /* ---- the deck ---- */
   #grid{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(18px + var(--safe-t)) 14px calc(30px + var(--safe-b))}
@@ -185,8 +225,10 @@
 
   /* grain: living film noise over everything (frames are made and cycled in app.js),
      never in the way of a finger */
-  .grain{position:fixed;inset:0;z-index:2147483647;pointer-events:none;opacity:.16;mix-blend-mode:overlay;
+  .grain{position:fixed;inset:0;z-index:2147483647;pointer-events:none;opacity:.06;transition:opacity var(--t-m) var(--ease);mix-blend-mode:overlay;
     background-size:180px 180px;image-rendering:pixelated}
+  /* over the live camera the grain is barely there: the room is already noisy */
+  body.scanning .grain{opacity:.025}
   #debug{position:absolute;z-index:7;left:10px;bottom:calc(10px + var(--safe-b));font:10px ui-monospace,monospace;color:#9f9;white-space:pre;pointer-events:none;
     text-shadow:0 1px 2px #000;display:none}
 </style>
@@ -244,6 +286,7 @@
     <i class="logo doorways arlogo"></i>
     <button class="small" id="bArHow">how to use the cards</button>
   </div>
+  <div class="guide" id="guide"></div>
   <div class="hint looking" id="hint">
     <b id="hintT">looking for a card</b>
     <span id="hintS">hold the number side up to the camera</span>
@@ -267,12 +310,21 @@
 </section>
 
 <div class="sheet" id="sheet">
+  <i class="grab" aria-hidden="true"></i>
   <div class="reveal">
-    <p class="base" id="sBaseLine">prompt for journaling</p>
-    <p class="prompt" id="sPrompt"></p>
-    <div class="actions">
-      <button class="btn ink" id="sNext">next prompt</button>
-      <button class="btn grey" id="sAgain">scan another</button>
+    <header class="feel">
+      <h2><span id="sName"></span><span class="num" id="sNum"></span></h2>
+      <span class="core" id="sCore"></span>
+    </header>
+    <p class="about" id="sAbout"></p>
+    <p class="similar" id="sSimilar"></p>
+    <div class="ask">
+      <p class="base" id="sBaseLine">prompt for journaling</p>
+      <p class="prompt" id="sPrompt"></p>
+      <div class="actions">
+        <button class="btn ink" id="sNext">next prompt</button>
+        <button class="btn grey" id="sAgain">scan another</button>
+      </div>
     </div>
   </div>
 </div>

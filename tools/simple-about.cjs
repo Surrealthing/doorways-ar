@@ -1,0 +1,58 @@
+/* plain explanations for every emotion: what it is, then when you might feel it.
+   Drafts by Claude, edit freely. */
+const fs = require('fs');
+const A = {
+  happiness: 'feeling good and glad. you might feel it when things go well or you are with people you like.',
+  peace: 'feeling calm and still inside. you might feel it when nothing is worrying you.',
+  contentment: 'feeling that what you have is enough. you might feel it on a quiet, ordinary good day.',
+  excitement: 'feeling full of energy about something good. you might feel it before a trip, a party or a new start.',
+  playfulness: 'wanting to have fun and be a little silly. you might feel it when you play, joke or try something just for fun.',
+  hope: 'believing that something good can still happen. you might feel it when you are waiting for things to get better.',
+  pride: 'feeling good about something you did. you might feel it after working hard or doing something difficult.',
+  relief: 'the feeling when a worry goes away. you might feel it when something you feared turns out fine.',
+  confidence: 'believing in yourself. you might feel it when you know you can do something.',
+  trust: 'feeling you can count on someone. you might feel it with people who keep their word.',
+  belonging: 'feeling that you are part of a group. you might feel it with family, friends or a team that welcomes you.',
+  admiration: 'looking up to someone for what they do or who they are. you might feel it when someone does something you find great.',
+  acceptance: 'letting something be as it is. you might feel it when you stop fighting something you cannot change.',
+  gratitude: 'feeling thankful. you might feel it when someone helps you or when you notice the good things you have.',
+  love: 'caring deeply about someone. you might feel it for family, friends, a partner or a pet.',
+  tenderness: 'a gentle, soft kind of care. you might feel it holding a baby, comforting a friend or looking after something small.',
+  compassion: 'feeling for someone who is hurting and wanting to help. you might feel it when you see someone sad or in pain.',
+  longing: 'wanting someone or something that is far away. you might feel it when you miss a person or a place.',
+  awe: 'feeling amazed by something big or beautiful. you might feel it looking at the sea, the stars or great art.',
+  curiosity: 'wanting to know or find out more. you might feel it when something is new, strange or interesting.',
+  confusion: 'not understanding what is going on. you might feel it when things don’t make sense yet.',
+  surprise: 'the feeling when something unexpected happens. it can be a good surprise or a bad one.',
+  nostalgia: 'missing a happy time from the past. you might feel it with an old song, photo or smell.',
+  sadness: 'feeling low or unhappy. you might feel it when you lose something or things don’t go the way you hoped.',
+  grief: 'deep sadness after losing someone or something important. it can last a long time and come in waves.',
+  loneliness: 'feeling alone or not close to anyone. you can feel it even when there are people around you.',
+  disappointment: 'feeling let down when something doesn’t happen the way you hoped.',
+  hurt: 'feeling pain because of what someone said or did. you might feel it when someone is unkind to you.',
+  exhaustion: 'feeling very, very tired, in your body or your mind. rest doesn’t always fix it right away.',
+  numbness: 'not feeling much at all. it can happen after a lot of stress or sadness.',
+  courage: 'doing something even though you are scared. you might feel it when you speak up or try something new.',
+  fear: 'feeling scared that something bad might happen. your body may tense up or your heart may beat fast.',
+  anxiety: 'worrying about what might happen. you might feel it in your body as a tight chest or a busy mind.',
+  overwhelm: 'feeling that there is too much to handle at once. you might feel it when you have too many things to do.',
+  insecurity: 'feeling unsure of yourself, or not good enough. you might feel it when you compare yourself to others.',
+  vulnerability: 'feeling open and unprotected. you might feel it when you share something personal or ask for help.',
+  helplessness: 'feeling there is nothing you can do to change a situation. you might feel it when things are out of your control.',
+  embarrassment: 'feeling awkward when others see a mistake you made. your face may get hot or red.',
+  anger: 'feeling mad when something seems wrong or unfair. your body may feel hot or tense.',
+  frustration: 'feeling annoyed when something keeps getting in your way. you might feel it when things don’t work.',
+  resentment: 'staying angry about something that happened before. you might feel it when you were treated unfairly.',
+  jealousy: 'being afraid someone will take what you have, like a friend’s attention.',
+  envy: 'wanting something that someone else has. you might feel it when someone gets what you wish for.',
+  restlessness: 'not being able to settle or sit still. you might feel you want something to change.',
+  disgust: 'a strong feeling of not liking something and wanting to pull away. it can be about food, smells or how people act.',
+  guilt: 'feeling bad about something you did. you might feel it when you hurt someone or broke a promise.',
+  shame: 'feeling bad about who you are, not just what you did. it can make you want to hide.',
+  boredom: 'feeling that nothing is interesting. you might feel it when you have nothing to do, or don’t want to do what you have to.',
+};
+global.window = {}; require('vm').runInThisContext(fs.readFileSync('data.js', 'utf8'));
+for (const c of window.CARDS) { if (!A[c.name]) throw new Error('missing ' + c.name); c.about = A[c.name]; }
+const src = fs.readFileSync('data.js', 'utf8');
+fs.writeFileSync('data.js', src.slice(0, src.indexOf('window.CARDS=')) + 'window.CARDS=' + JSON.stringify(window.CARDS, null, 1) + ';\n');
+console.log('ok');

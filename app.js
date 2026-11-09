@@ -358,6 +358,7 @@ addEventListener('deviceorientation', e => {
 
 async function lockCard(i) {
   const c = CARDS[i];
+  if (DEBUG) { const t = performance.now() - (window.__arStart || 0), m = window.__m || {}; document.title = `LOCK ${c.num} total ${Math.round(t)} | cam ${m.cam} ready ${m.ready} found ${m.found} → lock ${Math.round(t - m.found)}`; }
   locked = i; votes.length = 0;
   setColours(c); mode = 'ar'; fillSheet(c);
   /* the lock is felt and seen at once, even while the textures finish loading */
@@ -391,10 +392,11 @@ function resetCard() {
    card is being read, and after a while with no card, one clear message */
 let hintState = '', searchSince = 0;
 const HINTS = {
-  warming: ['getting ready', 'have a card ready, number side up'],
-  looking: ['looking for a card', 'hold the number side up to the camera'],
+  warming: ['getting ready', 'have a card ready, front with the logo up'],
+  looking: ['looking for a card', 'hold the front with the logo up to the camera'],
   reading: ['hold still', 'reading the card'],
-  lost:    ['can’t find a card', 'hold the number side flat, in good light, so it fills most of the screen'],
+  closer:  ['bring it closer', 'fill the corners with the card, front with the logo up'],
+  lost:    ['can’t find a card', 'hold the front with the logo up, flat and in good light, so it fills most of the screen'],
 };
 /* the frame guide's corners: a wave along a rounded L, its phase drifting so the line
    flows. Tapered to nothing at both ends, so each corner reads as one soft stroke */
@@ -427,9 +429,9 @@ function hint(state) {
   hintState = state;
   const el = $('#hint');
   el.classList.toggle('hide', !state);
-  el.classList.toggle('looking', state === 'looking' || state === 'warming');
+  el.classList.toggle('looking', state === 'looking' || state === 'warming' || state === 'closer');
   /* the frame guide shows where to hold the card until one is being read */
-  $('#guide').className = 'guide ' + (state === 'looking' || state === 'lost' ? 'on' : state === 'reading' ? 'on reading' : '');
+  $('#guide').className = 'guide ' + (state === 'looking' || state === 'closer' || state === 'lost' ? 'on' : state === 'reading' ? 'on reading' : '');
   if (/on/.test($('#guide').className)) startGuide(); else setTimeout(() => { if (!/on/.test($('#guide').className)) stopGuide(); }, T.m * 1000);
   if (HINTS[state]) { $('#hintT').textContent = HINTS[state][0]; $('#hintS').textContent = HINTS[state][1]; }
 }
@@ -454,8 +456,8 @@ let WHITE_PTS = [];
   } catch (e) {}
 })();
 function identify(now) {
-  if (now - foundAt < 180) return;                      /* let the first pose settle before reading colours */
-  if (now - lastSample < 140) return;
+  if (now - foundAt < 100) return;                      /* let the first pose settle before reading colours */
+  if (now - lastSample < 90) return;
   lastSample = now;
   const v = mindar.video; if (!v || !v.videoWidth) return;
   const vw = v.videoWidth, vh = v.videoHeight;
@@ -651,15 +653,48 @@ function frame(now) {
 
   renderer.render(scene, camera);
   /* a while with no card in view: say so, once, plainly */
-  if (locked === null && !visible && hintState === 'looking' && now - searchSince > 12000) hint('lost');
+  /* low-quality cameras only find the card when it is big in the frame: ask for that early */
+  if (locked === null && !visible && hintState === 'looking' && now - searchSince > 6000) hint('closer');
+  if (locked === null && !visible && hintState === 'closer' && now - searchSince > 14000) hint('lost');
   if (visible && locked === null) identify(now);
 }
 
 /* the camera is asked for here, still inside the begin tap, with our own constraints:
    720p so the printed number has enough pixels to read (MindAR's default leaves iPhones
    at 640×480), and real error names when it fails */
+/* the tracker's slow start (loading its target and compiling its GPU programs, ~3 s)
+   is done once in the background while the home screen is up: a hidden copy runs on a
+   blank picture the size the camera will likely give, then stops. The real start
+   reuses the compiled programs, so the scanner is ready almost as soon as the camera */
+let prewarmed = null;
+function prewarm() {
+  if (prewarmed || mindar || !window.isSecureContext) return;
+  prewarmed = (async () => {
+    const portrait = innerHeight > innerWidth, w = portrait ? 720 : 1280, h = portrait ? 1280 : 720;
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    const g = cv.getContext('2d');
+    const box = document.createElement('div');
+    box.style.cssText = `position:fixed;left:-10000px;top:0;width:${w / 4}px;height:${h / 4}px;visibility:hidden;pointer-events:none`;
+    document.body.append(box);
+    const m = new MindARThree({container: box, imageTargetSrc: 'assets/targets.mind', maxTrack: 1, uiLoading: 'no', uiScanning: 'no', uiError: 'no'});
+    const stream = cv.captureStream(5);
+    const paint = setInterval(() => { g.fillStyle = '#777'; g.fillRect(0, 0, w, h); }, 100);
+    m._startVideo = () => new Promise(res => {
+      const v = m.video = document.createElement('video');
+      v.muted = true; v.playsInline = true; v.setAttribute('playsinline', '');
+      v.addEventListener('loadedmetadata', () => { v.setAttribute('width', v.videoWidth); v.setAttribute('height', v.videoHeight); res(); }, {once: true});
+      box.append(v); v.srcObject = stream; v.play().catch(() => {});
+    });
+    try { await m.start(); } catch (e) {}
+    try { m.stop(); } catch (e) {}
+    try { m.renderer.dispose(); } catch (e) {}
+    clearInterval(paint); stream.getTracks().forEach(t => t.stop()); box.remove();
+  })();
+  return prewarmed;
+}
 async function openCamera() {
-  const want = {audio: false, video: {facingMode: {ideal: 'environment'}, width: {ideal: 1280}, height: {ideal: 720}}};
+  /* continuous focus keeps the small printed number sharp on cameras that support it */
+  const want = {audio: false, video: {facingMode: {ideal: 'environment'}, width: {ideal: 1280}, height: {ideal: 720}, advanced: [{focusMode: 'continuous'}]}};
   try { return await navigator.mediaDevices.getUserMedia(want); }
   catch (e) {
     if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) throw e;
@@ -671,7 +706,10 @@ async function openCamera() {
 }
 async function startAR() {
   mode = 'ar';
+  window.__arStart = performance.now();
   const stream = await openCamera();
+  /* if the background warm-up is still running, let it finish rather than compile twice */
+  if (prewarmed) await Promise.race([prewarmed, new Promise(r => setTimeout(r, 5000))]);
   show('#ar'); document.body.classList.add('scanning');
   mindar = new MindARThree({
     container: $('#stage'), imageTargetSrc: 'assets/targets.mind', maxTrack: 1,
@@ -690,6 +728,7 @@ async function startAR() {
     v.addEventListener('loadedmetadata', () => {
       v.setAttribute('width', v.videoWidth); v.setAttribute('height', v.videoHeight);
       show('#boot', false); hint('warming');
+      if (DEBUG) (window.__m = window.__m || {}).cam = Math.round(performance.now() - window.__arStart);
       resolve();
     }, {once: true});
     v.addEventListener('error', () => reject(new Error('video failed')), {once: true});
@@ -704,6 +743,7 @@ async function startAR() {
   buildCard();
   anchor.onTargetFound = () => {
     visible = true; foundAt = performance.now();
+    if (DEBUG && window.__m && !window.__m.found) window.__m.found = Math.round(performance.now() - window.__arStart);
     /* back after a real loss: jump, don't glide; but a card already shown glides, so it never pops */
     if (performance.now() - lostAt > 400 && locked === null) needSnap = true;
     jumpN = 0;
@@ -762,6 +802,7 @@ async function startAR() {
   if (!mindar.video || !mindar.video.videoWidth) await new Promise(r => setTimeout(r, 600));
   if (!mindar.video || !mindar.video.srcObject) throw new Error('no camera stream');
   searchSince = performance.now(); hint('looking');
+  if (DEBUG) (window.__m = window.__m || {}).ready = Math.round(performance.now() - window.__arStart);
   const veil = document.createElement('div'); veil.className = 'veil';
   $('#stage').insertBefore(veil, renderer.domElement);
   renderer.setAnimationLoop(frame);
@@ -1193,6 +1234,8 @@ dropCards();
 buildGrid();
 /* the tracker's target file is fetched while the home screen is up, so 'begin' is quicker */
 (window.requestIdleCallback || setTimeout)(() => fetch('assets/targets.mind').catch(() => {}));
+/* once the home cards have landed, warm the tracker up in the background */
+if (!/[?&]scan/.test(location.search)) setTimeout(() => (window.requestIdleCallback || setTimeout)(prewarm), 2500);
 /* lands on the home screen; the camera only opens from 'begin scanning a card' */
 route();
 if (/[?&]scan/.test(location.search)) begin();

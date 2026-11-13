@@ -83,6 +83,7 @@ function fillSheet(c) {
       if (k) sim.append(k === c.similar.length - 1 ? ' and ' : ', ');
       sim.append(b);
     });
+    prefetch(c.similar.map(n => CARDS.find(x => x.name === n)).filter(Boolean));
   }
   openSheet(false);
   fillTry();
@@ -159,16 +160,25 @@ function cardFace(emotion) {
    floating card turns back, takes the new card's art, and turns to its emotion again */
 async function goTo(c) {
   if (mode !== 'ar' || !floating) return openView(c);
-  let tn, tf;
-  try { [tn, tf] = await Promise.all([tex(`assets/cards/num-${pad(c.id)}.jpg`), tex(`assets/cards/face-${pad(c.id)}.jpg`)]); }
-  catch (e) { return; }
-  locked = CARDS.indexOf(c); current = c; setColours(c);
+  const i = CARDS.indexOf(c);
+  /* the old card goes at once; the new one builds in as soon as its thumbnail is here */
+  locked = i; current = c; setColours(c);
   for (const m of [cardFront.material, cardBack.material]) { m.uniforms.uA.value.set(c.a); m.uniforms.uB.value.set(c.b); }
-  cardFront.material.uniforms.map.value = tn; cardBack.material.uniforms.map.value = tf;
   showPrompt(false); sheetShownFor = null;
-  flipP = 0; flipTarget = 0; appearAt = performance.now();
-  flipAt = performance.now() + T.l * 1000;            /* a breath on the number side, then it turns */
+  flipP = 0; flipTarget = 0; flipAt = 0; appear = 0; holdAppear = true;
   buzz(10);
+  const hi = hiTex(c);
+  let full = false;
+  hi.then(() => { full = true; }, () => {});
+  try { const lo = await loTex(c); if (locked === i && !full) { cardFront.material.uniforms.map.value = lo; holdAppear = false; appearAt = performance.now(); } }
+  catch (e) {}
+  let tn, tf;
+  try { [tn, tf] = await hi; } catch (e) { if (locked === i) holdAppear = false; return; }
+  if (locked !== i) return;
+  cardFront.material.uniforms.map.value = tn; cardBack.material.uniforms.map.value = tf;
+  if (holdAppear) { holdAppear = false; appearAt = performance.now(); }
+  /* a breath on the number side, then it turns; never before the emotion side is here */
+  flipAt = Math.max(performance.now() + 300, appearAt + T.l * 1000);
 }
 $('#sAgain').onclick = () => mode === 'ar' ? resetCard() : closeView();
 
@@ -176,7 +186,7 @@ $('#sAgain').onclick = () => mode === 'ar' ? resetCard() : closeView();
 let mindar = null, anchor = null, renderer, scene, camera;
 let cardGroup, cardFront, cardBack, rig;
 let locked = null, lostAt = 0, visible = false;
-let appear = 0, flipP = 0, flipTarget = 0, sheetShownFor = null, appearAt = 0, flipAt = 0, visF = 0, needSnap = true, foundAt = 0;
+let holdAppear = false, appear = 0, flipP = 0, flipTarget = 0, sheetShownFor = null, appearAt = 0, flipAt = 0, visF = 0, needSnap = true, foundAt = 0;
 const votes = [];
 const texCache = new Map();
 const loader = new THREE.TextureLoader();
@@ -185,6 +195,17 @@ function tex(url) {
     t.colorSpace = THREE.NoColorSpace; t.anisotropy = 16; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; res(t); },
     undefined, e => { texCache.delete(url); rej(e); })));
   return texCache.get(url);
+}
+/* a card's art comes in two steps: the small number thumbnail (usually cached already) so
+   the new card shows at once, then the full pair. The old card is never left on screen
+   while the new one loads */
+const loTex = c => tex(`assets/cards/thumb-${pad(c.id)}.jpg`);
+const hiTex = c => Promise.all([tex(`assets/cards/num-${pad(c.id)}.jpg`), tex(`assets/cards/face-${pad(c.id)}.jpg`)]);
+/* cards a tap away (the ones a sheet calls close) start loading quietly in the background */
+function prefetch(cards) {
+  /* only once the card in hand is loaded, so they never slow it down on a weak connection */
+  const first = current ? hiTex(current).catch(() => {}) : Promise.resolve();
+  first.then(() => (window.requestIdleCallback || setTimeout)(() => cards.forEach(c => hiTex(c).catch(() => {}))));
 }
 
 /* ---- holographic card surface ----
@@ -355,7 +376,7 @@ async function lockCard(i) {
   if (locked !== i) return;
   for (const m of [cardFront.material, cardBack.material]) { m.uniforms.uA.value.set(c.a); m.uniforms.uB.value.set(c.b); }
   cardFront.material.uniforms.map.value = tn; cardBack.material.uniforms.map.value = tf;
-  cardGroup.visible = true; appear = 0; flipP = 0; flipTarget = 0; flipAt = 0; appearAt = performance.now();
+  cardGroup.visible = true; holdAppear = false; appear = 0; flipP = 0; flipTarget = 0; flipAt = 0; appearAt = performance.now();
   if (rig.parent && !floating && !lifting) needSnap = true;
   sheetShownFor = null; showPrompt(false);
   promptIdx = 0; /* sheet filled by fillSheet(c) above */
@@ -368,7 +389,7 @@ function flipTo(v) {
 }
 function resetCard() {
   if (rig) dropRig();
-  locked = null; votes.length = 0; flipTarget = 0; flipP = 0; appear = 0; liftAt = 0; flipAt = 0; visF = 0; needSnap = true;
+  locked = null; votes.length = 0; flipTarget = 0; flipP = 0; holdAppear = false; appear = 0; liftAt = 0; flipAt = 0; visF = 0; needSnap = true;
   if (cardGroup) cardGroup.visible = false;
   show('#sheet', false); showPrompt(false); sheetShownFor = null;
   searchSince = performance.now(); hint(visible ? 'reading' : 'looking');
@@ -612,7 +633,7 @@ function frame(now) {
     const kv = 1 - Math.exp(-dt * 3);
     viewS.x += (nTmp.x - viewS.x) * kv; viewS.y += (nTmp.y - viewS.y) * kv; fresS += (1 - Math.abs(nTmp.z) - fresS) * kv;
     for (const m of [cardFront.material, cardBack.material]) { m.uniforms.uView.value.copy(viewS); m.uniforms.uFres.value = fresS; }
-    appear = Math.min(1, appear + dt / T.m);
+    appear = holdAppear ? 0 : Math.min(1, appear + dt / T.m);
     const fd = dt / T.l;                                     /* a flip is the long duration */
     const wasP = flipP;
     flipP = flipTarget > flipP ? Math.min(flipTarget, flipP + fd) : Math.max(flipTarget, flipP - fd);
@@ -828,20 +849,30 @@ let flipTimer = 0;
 function openView(c) {
   mode = 'grid'; setColours(c); fillSheet(c);
   const card = $('#card2d');
-  card.classList.remove('flipped'); show('#sheet', false);
-  card.querySelector('.num img').src = `assets/cards/num-${pad(c.id)}.jpg`;
-  card.querySelector('.emo img').src = `assets/cards/face-${pad(c.id)}.jpg`;
+  card.classList.remove('flipped', 'gl'); show('#sheet', false);
+  /* the last card's pictures go at once: the thumbnail stands in until the full art is here */
+  const num = card.querySelector('.num img'), emo = card.querySelector('.emo img');
+  num.src = `assets/cards/thumb-${pad(c.id)}.jpg`; emo.removeAttribute('src');
+  const token = viewToken = {};
+  const opened = performance.now();
   show('#view');
   startViewGL(c);
-  clearTimeout(flipTimer); flipTimer = setTimeout(() => flip2d(true), 2 * T.l * 1000);   /* the ripple plays, then it turns */
+  clearTimeout(flipTimer);
+  hiTex(c).then(() => {
+    if (viewToken !== token) return;
+    num.src = `assets/cards/num-${pad(c.id)}.jpg`; emo.src = `assets/cards/face-${pad(c.id)}.jpg`;
+    /* the ripple plays, then it turns; never before the emotion side is here */
+    flipTimer = setTimeout(() => flip2d(true), Math.max(300, 2 * T.l * 1000 - (performance.now() - opened)));
+  }, () => { if (viewToken === token) { emo.src = `assets/cards/face-${pad(c.id)}.jpg`; flipTimer = setTimeout(() => flip2d(true), 2 * T.l * 1000); } });
 }
+let viewToken = null;
 function flip2d(on) {
   const card = $('#card2d');
   card.classList.toggle('flipped', on);
   clearTimeout(flipTimer);
   if (on) flipTimer = setTimeout(() => show('#sheet'), 1000); else show('#sheet', false);
 }
-function closeView() { show('#sheet', false); show('#view', false); stopViewGL(); }
+function closeView() { viewToken = null; clearTimeout(flipTimer); show('#sheet', false); show('#view', false); stopViewGL(); }
 
 /* ---- the deck view's card: the same holographic surface as the scanner ----
    its own small renderer, sharing the shader and the textures. The finger spin and the
@@ -865,7 +896,7 @@ function startViewGL(c) {
     }
     for (const m of [vgl.front.material, vgl.back.material]) { m.uniforms.uA.value.set(c.a); m.uniforms.uB.value.set(c.b); }
     Promise.all([tex(`assets/cards/num-${pad(c.id)}.jpg`), tex(`assets/cards/face-${pad(c.id)}.jpg`)]).then(([tn, tf]) => {
-      if (!vgl) return;
+      if (!vgl || current !== c) return;               /* another card was opened meanwhile */
       vgl.front.material.uniforms.map.value = tn; vgl.back.material.uniforms.map.value = tf;
       card2d.classList.add('gl');
     }).catch(() => {});
@@ -1069,14 +1100,18 @@ function dropCards() {
       const rz = r0 + (r1 - r0) * fall + 9 * lean * env;
       const rx = flutX * Math.sin(t * flutF * 6.283 + ph) * env, ry = flutY * lean * env;
       const sc = 1 + .05 * (1 - fall);                 /* a touch closer while it's high */
-      frames.push({offset: t, transform: `translate3d(${x.toFixed(2)}vw,${y.toFixed(2)}vh,0) rotateZ(${rz.toFixed(1)}deg) rotateX(${rx.toFixed(1)}deg) rotateY(${ry.toFixed(1)}deg) scale(${sc.toFixed(3)})`,
-        boxShadow: `0 ${(26 - 16 * fall).toFixed(0)}px ${(60 - 34 * fall).toFixed(0)}px -12px rgba(0,0,0,${(.22 + .38 * fall).toFixed(2)})`});
+      /* transform only, so the fall runs off the main thread and keeps going while the
+         tracker warms up underneath it (the shadow is fixed in the CSS) */
+      frames.push({offset: t, transform: `translate3d(${x.toFixed(2)}vw,${y.toFixed(2)}vh,0) rotateZ(${rz.toFixed(1)}deg) rotateX(${rx.toFixed(1)}deg) rotateY(${ry.toFixed(1)}deg) scale(${sc.toFixed(3)})`});
     }
     img.animate(frames, {duration: dur, delay, easing: 'linear', fill: 'both'});
     img.style.zIndex = i;
     pile.push({el: img, id: c.id, x: x1, y: y1, r: r1});
   });
-  setTimeout(() => $('#home').classList.add('landed'), end + T.s * 1000);
+  /* the words and buttons come in only once the tracker's warm-up is done: it holds the
+     page for a few seconds on a phone, and buttons that show but don't answer feel broken */
+  const warm = Promise.race([prewarmed || Promise.resolve(), new Promise(r => setTimeout(r, 4000))]);
+  setTimeout(() => warm.then(() => $('#home').classList.add('landed')), end + T.s * 1000);
 }
 /* a landing spot on the jittered screen grid, in vw / vh from the centre: ±0.4 of the
    screen at the outer slots, plus jitter up to a third of a cell, so edge cards hang a
@@ -1219,8 +1254,8 @@ dropCards();
 buildGrid();
 /* the tracker's target file is fetched while the home screen is up, so 'begin' is quicker */
 (window.requestIdleCallback || setTimeout)(() => fetch('assets/targets.mind').catch(() => {}));
-/* once the home cards have landed, warm the tracker up in the background */
-if (!/[?&]scan/.test(location.search)) setTimeout(() => (window.requestIdleCallback || setTimeout)(prewarm), 2500);
+/* the tracker warms up while the home cards are falling, before there is anything to tap */
+if (!/[?&]scan/.test(location.search)) setTimeout(prewarm, 300);
 /* lands on the home screen; the camera only opens from 'begin scanning a card' */
 route();
 if (/[?&]scan/.test(location.search)) begin();

@@ -84,6 +84,7 @@
   .drops{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;z-index:0;perspective:900px}
   .drops .dc{position:absolute;width:min(25vw,118px);aspect-ratio:2/3;border-radius:8px;overflow:hidden;
     left:calc(min(25vw,118px) / -2);top:calc(min(25vw,118px) * -.75);backface-visibility:hidden;will-change:transform;
+    box-shadow:0 10px 26px -12px rgba(0,0,0,.6);
     transition:filter var(--t-l) var(--ease),opacity var(--t-l) var(--ease)}
   .drops .dc img{display:block;width:100%;height:100%;object-fit:cover}
   #home.landed .drops .dc{opacity:.45;filter:blur(3px)}

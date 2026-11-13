@@ -25,12 +25,13 @@ All 48 number sides share the same white line art; only the gradient differs.
 ## Files
 - `data.js`: the 48 cards: number, emotion, base emotion, card text, colours, prompts.
   **prompts[0]** is the deck's own prompt; **prompts[1–2]** are drafts. Edit freely.
-- `assets/cards/num-NN.jpg`, `face-NN.jpg`: rendered from Doorways-Final.ai at trim.
+- `assets/cards/num-NN.webp`, `face-NN.webp`, `thumb-NN.webp`: the card art the site serves. The JPEG masters,
+  rendered from Doorways-Final.ai at trim, stay local in `tools/cards-jpg/` (not published).
 - `assets/logo-doorways.svg`, `logo-were.svg`: the marks, lifted from the cover.
 
 ## When the card art changes
     F=~/Library/Mobile\ Documents/com~apple~CloudDocs/Projects/We\*re/Doorways/Doorways-Final.ai
-    cd assets/cards && for k in $(seq 1 48); do n=$(printf %02d $k)
+    cd tools/cards-jpg && for k in $(seq 1 48); do n=$(printf %02d $k)
       pdftoppm -r 230 -x 27 -y 27 -W 724 -H 1087 -jpeg -jpegopt quality=86 -f $((2*k-1)) -l $((2*k-1)) -singlefile "$F" num-$n
       pdftoppm -r 230 -x 27 -y 27 -W 724 -H 1087 -jpeg -jpegopt quality=86 -f $((2*k)) -l $((2*k)) -singlefile "$F" face-$n; done
-    cd ../.. && tools/build-targets.sh
+    cd ../.. && tools/build-targets.sh && tools/make-webp.sh

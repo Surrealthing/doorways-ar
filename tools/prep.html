@@ -28,7 +28,7 @@ const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
 const g=cv.getContext('2d',{willReadFrequently:true});
 for(let k=1;k<=48;k++){
   const n=String(k).padStart(2,'0');
-  const im=await load(`../assets/cards/num-${n}.jpg`);
+  const im=await load(`cards-jpg/num-${n}.jpg`);
   g.drawImage(im,0,0,W,H);
   const d=g.getImageData(0,0,W,H).data;
   for(let i=0;i<W*H;i++) acc[i]+=(.299*d[i*4]+.587*d[i*4+1]+.114*d[i*4+2])/48;

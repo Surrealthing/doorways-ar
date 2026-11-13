@@ -47,7 +47,10 @@
   .btn.secondary{background:var(--panel);color:var(--tx)}
   .btn.ink{background:var(--ink);color:#fff}
   .btn.grey{background:var(--grey);color:var(--ink)}
-  .small{height:34px;padding:0 14px;border-radius:17px;font-size:12.5px;background:rgba(10,11,15,.72);color:var(--tx)}
+  /* Loos sits low in its line box (tall ascent, short descent), so lowercase labels read
+     below centre: a little bottom padding lifts them to the optical middle */
+  .btn{padding-bottom:.16em}
+  .small{height:34px;padding:0 14px .16em;border-radius:17px;font-size:12.5px;background:rgba(10,11,15,.72);color:var(--tx)}
   /* dark buttons answer a press the way the card answers motion: the label splits slightly
      into red and blue, then settles back sharp */
   .btn.ink,.btn.secondary,.small{transition:transform var(--t-s) var(--ease),background var(--t-s) var(--ease),text-shadow var(--t-m) var(--ease);
@@ -101,6 +104,7 @@
   #how{overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
   .howwrap{max-width:520px;margin:0 auto;padding:calc(16px + var(--safe-t)) 26px 0}
   #how h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 16px}
+  #how .fine{margin:22px auto 0;max-width:300px;font-size:11px;line-height:1.45;text-align:center;color:var(--dim);text-wrap:balance}
   #how .lead{font-family:var(--serif);font-size:18px;line-height:1.55;color:rgba(243,244,246,.86);margin:0 0 28px}
   .steps{list-style:none;counter-reset:s;padding:0;margin:0 0 28px}
   .steps li{counter-increment:s;display:grid;grid-template-columns:28px 1fr;column-gap:12px;padding:16px 0;border-top:1px solid rgba(255,255,255,.1)}
@@ -184,6 +188,7 @@
   .actions{display:flex;gap:10px;margin-top:24px}
   .askhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
   /* try this: the card's exercise, in its own soft panel under the prompt */
+  .sheet .note{margin:16px 0 0;font-size:11px;line-height:1.45;text-align:center;color:rgba(11,12,16,.34);text-wrap:balance}
   .try{margin-top:20px;padding:16px 16px 14px;border-radius:18px;background:rgba(11,12,16,.045)}
   .xkind{display:flex;align-items:center;gap:7px;font-family:var(--wide);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(11,12,16,.55);margin:0 0 8px}
   .xtext{font-family:var(--serif);font-size:18px;line-height:1.4;margin:0}
@@ -288,6 +293,7 @@
       <button class="btn primary" id="bHowBegin">begin scanning a card</button>
       <button class="btn secondary" id="bHowDeck">browse the deck</button>
     </div>
+    <p class="fine">not a clinical tool. these cards are for reflection and emotional awareness.</p>
     <i class="logo were" style="width:56px;margin:40px auto 90px;color:var(--dim)"></i>
   </div>
 </section>
@@ -353,6 +359,7 @@
         <button class="btn ink" id="sNext">next prompt</button>
         <button class="btn grey" id="sAgain">scan another</button>
       </div>
+      <p class="note">not a clinical tool. these cards are for reflection and emotional awareness.</p>
     </div>
   </div>
 </div>

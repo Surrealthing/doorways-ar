@@ -199,8 +199,8 @@ function tex(url) {
 /* a card's art comes in two steps: the small number thumbnail (usually cached already) so
    the new card shows at once, then the full pair. The old card is never left on screen
    while the new one loads */
-const loTex = c => tex(`assets/cards/thumb-${pad(c.id)}.jpg`);
-const hiTex = c => Promise.all([tex(`assets/cards/num-${pad(c.id)}.jpg`), tex(`assets/cards/face-${pad(c.id)}.jpg`)]);
+const loTex = c => tex(`assets/cards/thumb-${pad(c.id)}.webp`);
+const hiTex = c => Promise.all([tex(`assets/cards/num-${pad(c.id)}.webp`), tex(`assets/cards/face-${pad(c.id)}.webp`)]);
 /* cards a tap away (the ones a sheet calls close) start loading quietly in the background */
 function prefetch(cards) {
   /* only once the card in hand is loaded, so they never slow it down on a weak connection */
@@ -371,7 +371,7 @@ async function lockCard(i) {
   buzz([14, 45, 22]);
   hint('');
   let tn, tf;
-  try { [tn, tf] = await Promise.all([tex(`assets/cards/num-${pad(c.id)}.jpg`), tex(`assets/cards/face-${pad(c.id)}.jpg`)]); }
+  try { [tn, tf] = await Promise.all([tex(`assets/cards/num-${pad(c.id)}.webp`), tex(`assets/cards/face-${pad(c.id)}.webp`)]); }
   catch (e) { console.warn(e); if (locked === i) resetCard(); return; }
   if (locked !== i) return;
   for (const m of [cardFront.material, cardBack.material]) { m.uniforms.uA.value.set(c.a); m.uniforms.uB.value.set(c.b); }
@@ -537,7 +537,7 @@ function identify(now) {
   const [top, wsum] = Object.entries(tally).sort((a, b) => b[1] - a[1])[0];
   /* fetch the leader's art while the votes build, so the lock shows the card at once */
   const lc = CARDS[+top];
-  tex(`assets/cards/num-${pad(lc.id)}.jpg`).catch(() => {}); tex(`assets/cards/face-${pad(lc.id)}.jpg`).catch(() => {});
+  tex(`assets/cards/num-${pad(lc.id)}.webp`).catch(() => {}); tex(`assets/cards/face-${pad(lc.id)}.webp`).catch(() => {});
   if (wsum >= 4) lockCard(+top);
 }
 
@@ -833,7 +833,7 @@ function buildGrid() {
   CARDS.forEach(c => {
     const b = document.createElement('button');
     const img = new Image(); img.loading = 'lazy'; img.alt = c.num; img.onload = () => img.classList.add('ok');
-    img.src = `assets/cards/thumb-${pad(c.id)}.jpg`;
+    img.src = `assets/cards/thumb-${pad(c.id)}.webp`;
     b.append(img); b.insertAdjacentHTML('beforeend', `<span>${c.num}</span>`);
     b.onclick = () => openView(c);
     d.append(b);
@@ -852,7 +852,7 @@ function openView(c) {
   card.classList.remove('flipped', 'gl'); show('#sheet', false);
   /* the last card's pictures go at once: the thumbnail stands in until the full art is here */
   const num = card.querySelector('.num img'), emo = card.querySelector('.emo img');
-  num.src = `assets/cards/thumb-${pad(c.id)}.jpg`; emo.removeAttribute('src');
+  num.src = `assets/cards/thumb-${pad(c.id)}.webp`; emo.removeAttribute('src');
   const token = viewToken = {};
   const opened = performance.now();
   show('#view');
@@ -860,10 +860,10 @@ function openView(c) {
   clearTimeout(flipTimer);
   hiTex(c).then(() => {
     if (viewToken !== token) return;
-    num.src = `assets/cards/num-${pad(c.id)}.jpg`; emo.src = `assets/cards/face-${pad(c.id)}.jpg`;
+    num.src = `assets/cards/num-${pad(c.id)}.webp`; emo.src = `assets/cards/face-${pad(c.id)}.webp`;
     /* the ripple plays, then it turns; never before the emotion side is here */
     flipTimer = setTimeout(() => flip2d(true), Math.max(300, 2 * T.l * 1000 - (performance.now() - opened)));
-  }, () => { if (viewToken === token) { emo.src = `assets/cards/face-${pad(c.id)}.jpg`; flipTimer = setTimeout(() => flip2d(true), 2 * T.l * 1000); } });
+  }, () => { if (viewToken === token) { emo.src = `assets/cards/face-${pad(c.id)}.webp`; flipTimer = setTimeout(() => flip2d(true), 2 * T.l * 1000); } });
 }
 let viewToken = null;
 function flip2d(on) {
@@ -895,7 +895,7 @@ function startViewGL(c) {
       vgl = {r, sc, cam, card, front, back, cv, raf: 0, flip: 0, t0: 0, last: 0};
     }
     for (const m of [vgl.front.material, vgl.back.material]) { m.uniforms.uA.value.set(c.a); m.uniforms.uB.value.set(c.b); }
-    Promise.all([tex(`assets/cards/num-${pad(c.id)}.jpg`), tex(`assets/cards/face-${pad(c.id)}.jpg`)]).then(([tn, tf]) => {
+    Promise.all([tex(`assets/cards/num-${pad(c.id)}.webp`), tex(`assets/cards/face-${pad(c.id)}.webp`)]).then(([tn, tf]) => {
       if (!vgl || current !== c) return;               /* another card was opened meanwhile */
       vgl.front.material.uniforms.map.value = tn; vgl.back.material.uniforms.map.value = tf;
       card2d.classList.add('gl');
@@ -1046,7 +1046,7 @@ function setHomeGradient(preferFresh = true) {
   setColours(c);
   const art = document.documentElement.style;
   const bg = document.querySelector('.artbg');
-  const apply = () => art.setProperty('--art', `url(assets/cards/thumb-${pad(c.id)}.jpg)`);   /* blurred anyway */
+  const apply = () => art.setProperty('--art', `url(assets/cards/thumb-${pad(c.id)}.webp)`);   /* blurred anyway */
   if (bg && preferFresh && homeGradId != null) {
     bg.style.opacity = '0';
     setTimeout(() => { apply(); bg.style.opacity = ''; }, 280);
@@ -1070,7 +1070,7 @@ function dropCards() {
   let end = 0;
   ids.forEach((c, i) => {
     const img = document.createElement('div'); img.className = 'dc';
-    const im = new Image(); im.src = `assets/cards/thumb-${pad(c.id)}.jpg`; im.alt = ''; img.append(im);
+    const im = new Image(); im.src = `assets/cards/thumb-${pad(c.id)}.webp`; im.alt = ''; img.append(im);
     box.append(img);
     /* where it lands: spread across the whole screen, on a jittered grid so no two
        cards bunch up and no corner is left empty */
@@ -1144,7 +1144,7 @@ function shuffleCards(power = 1) {
   pile.forEach((p, i) => {
     const {x: x1, y: y1} = slotXY(order[i], cols, rows), r1 = r(-30, 30);
     const swap = Math.random() < .34 && spare.length ? spare.pop() : null, pre = swap && new Image();
-    if (pre) pre.src = `assets/cards/thumb-${pad(swap.id)}.jpg`;
+    if (pre) pre.src = `assets/cards/thumb-${pad(swap.id)}.webp`;
     const spin = r(-70, 70) * power, lift = r(1.06, 1.14);
     const fx = r(16, 34) * (Math.random() < .5 ? -1 : 1), fy = r(12, 26), ph = r(0, 6.28);
     const dur = T.l * 1000 * r(.65, .8), delay = r(0, T.s * 300);

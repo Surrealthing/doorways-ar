@@ -10,3 +10,5 @@ tools/orig-num-2x/
 # content sheet for editing, not part of the site
 Doorways-content.xlsx
 Doorways-prompts-activities.xlsx
+# JPEG masters of the card art; the site serves the WebP made by tools/make-webp.sh
+tools/cards-jpg/
